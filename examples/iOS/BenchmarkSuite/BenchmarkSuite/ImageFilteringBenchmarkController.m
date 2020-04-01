@@ -167,7 +167,8 @@
 - (UIImage *)imageProcessedUsingGPUImage:(UIImage *)imageToProcess;
 {
     CFAbsoluteTime elapsedTime, startTime = CFAbsoluteTimeGetCurrent();
-    
+
+    //GPUImagePicture 继承于GPUImageOutput，此实例维护了一系列的GPUImageinput协议，每一个GPUImageInput都维护了一个texture
     GPUImagePicture *stillImageSource = [[GPUImagePicture alloc] initWithImage:imageToProcess];
     GPUImageSepiaFilter *stillImageFilter = [[GPUImageSepiaFilter alloc] init];
     
