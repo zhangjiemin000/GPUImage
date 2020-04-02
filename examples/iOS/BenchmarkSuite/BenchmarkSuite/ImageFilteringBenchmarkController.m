@@ -170,10 +170,13 @@
 
     //GPUImagePicture 继承于GPUImageOutput，此实例维护了一系列的GPUImageinput协议，每一个GPUImageInput都维护了一个texture
     GPUImagePicture *stillImageSource = [[GPUImagePicture alloc] initWithImage:imageToProcess];
+    //GPUImageSepiaFilter是一种滤镜
     GPUImageSepiaFilter *stillImageFilter = [[GPUImageSepiaFilter alloc] init];
-    
+    //将滤镜加入
     [stillImageSource addTarget:stillImageFilter];
+    //滤镜调用useNextFrameForImageCapture
     [stillImageFilter useNextFrameForImageCapture];
+    //执行滤镜
     [stillImageSource processImage];
     
     UIImage *currentFilteredVideoFrame = [stillImageFilter imageFromCurrentFramebuffer];
