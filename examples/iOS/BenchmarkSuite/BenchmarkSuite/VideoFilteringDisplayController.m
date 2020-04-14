@@ -185,9 +185,11 @@
     numberOfGPUImageFramesCaptured = 0;
 
     NSLog(@"Start GPU Image");
+    //初始化VideoCamera的对象，GPUImageVideoCamera封装了对系统的Video的调用，并且还封装了一个YUV颜色的转换GPU程序
     videoCamera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPreset640x480 cameraPosition:AVCaptureDevicePositionBack];
 //    videoCamera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPreset1280x720 cameraPosition:AVCaptureDevicePositionBack];
-    videoCamera.runBenchmark = YES;
+    videoCamera.runBenchmark = YES;  //基准调试方法
+    //输出竖直方向的画面
     videoCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
     
 //    sepiaFilter = [[GPUImageSepiaFilter alloc] init];
@@ -197,7 +199,7 @@
     //初始化GPUFilter
     benchmarkedGPUImageFilter = [[GPUImageGammaFilter alloc] init];
     [(GPUImageGammaFilter *)benchmarkedGPUImageFilter setGamma:0.75];
-    //加入这个滤镜
+    //加入这个滤镜，并将这个滤镜的输入buffer，设置未videoCamera的输出buffer
     [videoCamera addTarget:benchmarkedGPUImageFilter];
     //初始化GPUImageView
     filterView = [[GPUImageView alloc] initWithFrame:self.view.bounds];
