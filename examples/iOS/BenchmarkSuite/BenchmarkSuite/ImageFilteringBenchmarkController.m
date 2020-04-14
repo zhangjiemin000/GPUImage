@@ -169,6 +169,7 @@
     CFAbsoluteTime elapsedTime, startTime = CFAbsoluteTimeGetCurrent();
 
     //GPUImagePicture 继承于GPUImageOutput，此实例维护了一系列的GPUImageinput协议，每一个GPUImageInput都维护了一个texture
+    //这里就创建了一个FrameBuffer，每一个GPUImagePicture，都会封装一个GPUBuffer的对象
     GPUImagePicture *stillImageSource = [[GPUImagePicture alloc] initWithImage:imageToProcess];
     //GPUImageSepiaFilter是一种滤镜
     GPUImageSepiaFilter *stillImageFilter = [[GPUImageSepiaFilter alloc] init];
@@ -178,7 +179,8 @@
     [stillImageFilter useNextFrameForImageCapture];
     //执行滤镜  
     [stillImageSource processImage];
-    
+
+    //获取UIImage 从当前的Framebuffer中
     UIImage *currentFilteredVideoFrame = [stillImageFilter imageFromCurrentFramebuffer];
     
     elapsedTime = CFAbsoluteTimeGetCurrent() - startTime;

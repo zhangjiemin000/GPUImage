@@ -18,9 +18,10 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
-    [self displayVideoForCPU];
+
+    [self displayVideoForGPUImage];
 }
+
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
@@ -78,105 +79,105 @@
 //    [captureSession setSessionPreset:AVCaptureSessionPreset1280x720];
     [captureSession setSessionPreset:AVCaptureSessionPreset640x480];
 }
-
-- (void)displayVideoForCPU;
-{
-    NSLog(@"Start CPU Image");
-    totalFrameTimeForCPU = 0.0;
-    numberOfCPUFramesCaptured = 0;
-
-    [self startAVFoundationVideoProcessing];
-    processUsingCPU = YES;
-    
-    [captureSession startRunning];
-    
-    double delayInSeconds = 10.0;
-    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
-    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-
-        [captureSession stopRunning];
-        // Remove view
-        captureSession = nil;
-        videoInput = nil;
-        videoOutput = nil;
-        
-        NSLog(@"End CPU Image");
-
-        [self displayVideoForCoreImage];
-    });
-}
-
-- (void)displayVideoForCoreImage;
-{
-    totalFrameTimeForCoreImage = 0.0;
-    numberOfCoreImageFramesCaptured = 0;
-
-    NSLog(@"Start Core Image");
-
-    self.openGLESContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    
-    if (!self.openGLESContext) {
-        NSLog(@"Failed to create ES context");
-    }
-
-    [EAGLContext setCurrentContext:self.openGLESContext];
-
-    videoDisplayView = [[GLKView alloc] initWithFrame:self.view.bounds context:self.openGLESContext];
-    videoDisplayView.contentScaleFactor = [[UIScreen mainScreen] scale];
-
-//    videoDisplayView.frame = self.view.bounds;
-    [self.view addSubview:videoDisplayView];
-    
-    glGenRenderbuffers(1, &_renderBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, _renderBuffer);
-
-//    videoDisplayView.context = self.openGLESContext;
-//    videoDisplayView.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-
-//    [videoDisplayView bindDrawable];
-
-    // Disable color correction to provide a more fair benchmark
-    NSMutableDictionary *options = [[NSMutableDictionary alloc] init];
-    [options setObject: [NSNull null] forKey: kCIContextWorkingColorSpace];
-    coreImageContext = [CIContext contextWithEAGLContext:self.openGLESContext options:options];
-    
-    
-//    sepiaCoreImageFilter = [CIFilter filterWithName:@"CIGaussianBlur"];
-//    [sepiaCoreImageFilter setValue:[NSNumber numberWithFloat:BLURSIGMA] forKey:@"inputRadius"];
-
-//    sepiaCoreImageFilter = [CIFilter filterWithName:@"CISepiaTone"];
-//    [sepiaCoreImageFilter setValue:[NSNumber numberWithFloat:1.0] forKey:@"inputIntensity"];
-
-    coreImageFilter = [CIFilter filterWithName:@"CIGammaAdjust"];
-    [coreImageFilter setValue:[NSNumber numberWithFloat:0.75] forKey:@"inputPower"];
-    
-    [self startAVFoundationVideoProcessing];
-    processUsingCPU = NO;
-    
-    [captureSession startRunning];    
-
-    double delayInSeconds = 10.0;
-    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
-    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-        
-        [captureSession stopRunning];
-        
-        [videoDisplayView removeFromSuperview];
-        videoDisplayView = nil;
-
-        captureSession = nil;
-        videoInput = nil;
-        videoOutput = nil;
-        
-        self.openGLESContext = nil;
-        glDeleteRenderbuffers(1, &_renderBuffer);
-
-        NSLog(@"End Core Image");
-
-        sleep(1);
-        [self displayVideoForGPUImage];
-    });
-}
+//
+//- (void)displayVideoForCPU;
+//{
+//    NSLog(@"Start CPU Image");
+//    totalFrameTimeForCPU = 0.0;
+//    numberOfCPUFramesCaptured = 0;
+//
+//    [self startAVFoundationVideoProcessing];
+//    processUsingCPU = YES;
+//
+//    [captureSession startRunning];
+//
+//    double delayInSeconds = 10.0;
+//    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+//    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+//
+//        [captureSession stopRunning];
+//        // Remove view
+//        captureSession = nil;
+//        videoInput = nil;
+//        videoOutput = nil;
+//
+//        NSLog(@"End CPU Image");
+//
+//        [self displayVideoForCoreImage];
+//    });
+//}
+//
+//- (void)displayVideoForCoreImage;
+//{
+//    totalFrameTimeForCoreImage = 0.0;
+//    numberOfCoreImageFramesCaptured = 0;
+//
+//    NSLog(@"Start Core Image");
+//
+//    self.openGLESContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+//
+//    if (!self.openGLESContext) {
+//        NSLog(@"Failed to create ES context");
+//    }
+//
+//    [EAGLContext setCurrentContext:self.openGLESContext];
+//
+//    videoDisplayView = [[GLKView alloc] initWithFrame:self.view.bounds context:self.openGLESContext];
+//    videoDisplayView.contentScaleFactor = [[UIScreen mainScreen] scale];
+//
+////    videoDisplayView.frame = self.view.bounds;
+//    [self.view addSubview:videoDisplayView];
+//
+//    glGenRenderbuffers(1, &_renderBuffer);
+//    glBindRenderbuffer(GL_RENDERBUFFER, _renderBuffer);
+//
+////    videoDisplayView.context = self.openGLESContext;
+////    videoDisplayView.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+//
+////    [videoDisplayView bindDrawable];
+//
+//    // Disable color correction to provide a more fair benchmark
+//    NSMutableDictionary *options = [[NSMutableDictionary alloc] init];
+//    [options setObject: [NSNull null] forKey: kCIContextWorkingColorSpace];
+//    coreImageContext = [CIContext contextWithEAGLContext:self.openGLESContext options:options];
+//
+//
+////    sepiaCoreImageFilter = [CIFilter filterWithName:@"CIGaussianBlur"];
+////    [sepiaCoreImageFilter setValue:[NSNumber numberWithFloat:BLURSIGMA] forKey:@"inputRadius"];
+//
+////    sepiaCoreImageFilter = [CIFilter filterWithName:@"CISepiaTone"];
+////    [sepiaCoreImageFilter setValue:[NSNumber numberWithFloat:1.0] forKey:@"inputIntensity"];
+//
+//    coreImageFilter = [CIFilter filterWithName:@"CIGammaAdjust"];
+//    [coreImageFilter setValue:[NSNumber numberWithFloat:0.75] forKey:@"inputPower"];
+//
+//    [self startAVFoundationVideoProcessing];
+//    processUsingCPU = NO;
+//
+//    [captureSession startRunning];
+//
+//    double delayInSeconds = 10.0;
+//    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+//    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+//
+//        [captureSession stopRunning];
+//
+//        [videoDisplayView removeFromSuperview];
+//        videoDisplayView = nil;
+//
+//        captureSession = nil;
+//        videoInput = nil;
+//        videoOutput = nil;
+//
+//        self.openGLESContext = nil;
+//        glDeleteRenderbuffers(1, &_renderBuffer);
+//
+//        NSLog(@"End Core Image");
+//
+//        sleep(1);
+//        [self displayVideoForGPUImage];
+//    });
+//}
 
 - (void)displayVideoForGPUImage;
 {
@@ -193,34 +194,38 @@
 //    sepiaFilter = [[GPUImageiOSBlurFilter alloc] init];
 //    sepiaFilter = [[GPUImageGaussianBlurFilter alloc] init];
 //    [(GPUImageGaussianBlurFilter *)sepiaFilter setBlurRadiusInPixels:BLURSIGMA];
+    //初始化GPUFilter
     benchmarkedGPUImageFilter = [[GPUImageGammaFilter alloc] init];
     [(GPUImageGammaFilter *)benchmarkedGPUImageFilter setGamma:0.75];
-    
+    //加入这个滤镜
     [videoCamera addTarget:benchmarkedGPUImageFilter];
+    //初始化GPUImageView
     filterView = [[GPUImageView alloc] initWithFrame:self.view.bounds];
+    //加入这个View
     [self.view addSubview:filterView];
+    //fitler加入这个view
     [benchmarkedGPUImageFilter addTarget:filterView];
-    
+    //开始运行视频
     [videoCamera startCameraCapture];
 
-    double delayInSeconds = 10.0;
-    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
-    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-        
-        [videoCamera stopCameraCapture];
-        
-        [filterView removeFromSuperview];
-        filterView = nil;
-        
-        captureSession = nil;
-        videoInput = nil;
-        videoOutput = nil;
-        
-        NSLog(@"End GPU Image");
-        
-        [delegate finishedTestWithAverageTimesForCPU:(totalFrameTimeForCPU * 1000.0 / numberOfCPUFramesCaptured) coreImage:(totalFrameTimeForCoreImage * 1000.0 / numberOfCoreImageFramesCaptured) gpuImage:[videoCamera averageFrameDurationDuringCapture]];
-        videoCamera = nil;
-    });
+//    double delayInSeconds = 10.0;
+//    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+//    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+//
+//        [videoCamera stopCameraCapture];
+//
+//        [filterView removeFromSuperview];
+//        filterView = nil;
+//
+//        captureSession = nil;
+//        videoInput = nil;
+//        videoOutput = nil;
+//
+//        NSLog(@"End GPU Image");
+//
+//        [delegate finishedTestWithAverageTimesForCPU:(totalFrameTimeForCPU * 1000.0 / numberOfCPUFramesCaptured) coreImage:(totalFrameTimeForCoreImage * 1000.0 / numberOfCoreImageFramesCaptured) gpuImage:[videoCamera averageFrameDurationDuringCapture]];
+//        videoCamera = nil;
+//    });
 
 }
 

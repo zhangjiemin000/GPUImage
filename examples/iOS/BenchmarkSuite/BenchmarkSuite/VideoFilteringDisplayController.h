@@ -33,8 +33,6 @@
 
 // Video filtering
 - (void)startAVFoundationVideoProcessing;
-- (void)displayVideoForCPU;
-- (void)displayVideoForCoreImage;
 - (void)displayVideoForGPUImage;
 
 @end
