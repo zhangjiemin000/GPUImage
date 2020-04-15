@@ -70,6 +70,9 @@ static void *openGLESContextQueueKey;
     return [[self sharedImageProcessingContext] framebufferCache];
 }
 
+/**
+ * 配置上下文
+ */
 + (void)useImageProcessingContext;
 {
     [[GPUImageContext sharedImageProcessingContext] useAsCurrentContext];
@@ -77,7 +80,9 @@ static void *openGLESContextQueueKey;
 
 - (void)useAsCurrentContext;
 {
+    //获取EAGLContext
     EAGLContext *imageProcessingContext = [self context];
+    //如果EAGLContext不是当前的Context，则赋值为当前的Context
     if ([EAGLContext currentContext] != imageProcessingContext)
     {
         [EAGLContext setCurrentContext:imageProcessingContext];
@@ -109,8 +114,9 @@ static void *openGLESContextQueueKey;
 {
     static dispatch_once_t pred;
     static GLint maxTextureSize = 0;
-    
+    //只需要运行一次就可以了
     dispatch_once(&pred, ^{
+        //将Context使用当前的Context
         [self useImageProcessingContext];
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
     });
@@ -186,6 +192,11 @@ static void *openGLESContextQueueKey;
     return supportsFramebufferReads;
 }
 
+/**
+ * 获取当前最大的图片大小
+ * @param inputSize
+ * @return
+ */
 + (CGSize)sizeThatFitsWithinATextureForSize:(CGSize)inputSize;
 {
     GLint maxTextureSize = [self maximumTextureSizeForThisDevice]; 
@@ -218,9 +229,10 @@ static void *openGLESContextQueueKey;
 {
     NSString *lookupKeyForShaderProgram = [NSString stringWithFormat:@"V: %@ - F: %@", vertexShaderString, fragmentShaderString];
     GLProgram *programFromCache = [shaderProgramCache objectForKey:lookupKeyForShaderProgram];
-
+    //如果cache为空时
     if (programFromCache == nil)
     {
+        //编译着色器
         programFromCache = [[GLProgram alloc] initWithVertexShaderString:vertexShaderString fragmentShaderString:fragmentShaderString];
         [shaderProgramCache setObject:programFromCache forKey:lookupKeyForShaderProgram];
 //        [shaderProgramUsageHistory addObject:lookupKeyForShaderProgram];

@@ -36,7 +36,7 @@ typedef void (*GLLogFunction) (GLuint program, GLsizei bufsize, GLsizei* length,
         attributes = [[NSMutableArray alloc] init];
         uniforms = [[NSMutableArray alloc] init];
         program = glCreateProgram();
-        
+        //封装CompileShader
         if (![self compileShader:&vertShader 
                             type:GL_VERTEX_SHADER 
                           string:vShaderString])
@@ -45,6 +45,7 @@ typedef void (*GLLogFunction) (GLuint program, GLsizei bufsize, GLsizei* length,
         }
         
         // Create and compile fragment shader
+        //这里编译片段着色器
         if (![self compileShader:&fragShader 
                             type:GL_FRAGMENT_SHADER 
                           string:fShaderString])

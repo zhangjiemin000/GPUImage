@@ -2,6 +2,9 @@
 #import "GPUImageOutput.h"
 
 
+/**
+ * GPUImage 封装的ImagePicture
+ */
 @interface GPUImagePicture : GPUImageOutput
 {
     CGSize pixelSizeOfImage;

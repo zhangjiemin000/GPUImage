@@ -38,6 +38,9 @@ void reportAvailableMemoryForGPUImage(NSString *tag);
  
  Source objects upload still image frames to OpenGL ES as textures, then hand those textures off to the next objects in the processing chain.
  */
+/**
+ * GPUImage基类
+ */
 @interface GPUImageOutput : NSObject
 {
     GPUImageFramebuffer *outputFramebuffer;

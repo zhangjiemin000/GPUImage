@@ -5,14 +5,14 @@
 // Hardcode the vertex shader for standard filters, but this can be overridden
 NSString *const kGPUImageVertexShaderString = SHADER_STRING
 (
- attribute vec4 position;
+ attribute vec4 position;  //attribute般用attribute变量来表示一些顶点的数据，像我们写的三角形中就表示顶点的坐标
  attribute vec4 inputTextureCoordinate;
  
- varying vec2 textureCoordinate;
+ varying vec2 textureCoordinate; //varying变量是vertex shader和fragment shader之间做数据传递用的。
  
  void main()
  {
-     gl_Position = position;
+     gl_Position = position;  //
      textureCoordinate = inputTextureCoordinate.xy;
  }
  );
@@ -55,6 +55,12 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
 #pragma mark -
 #pragma mark Initialization and teardown
 
+/**
+ * 编译并且连接vertexShaderString和FragmentShaderString
+ * @param vertexShaderString
+ * @param fragmentShaderString
+ * @return
+ */
 - (id)initWithVertexShaderFromString:(NSString *)vertexShaderString fragmentShaderFromString:(NSString *)fragmentShaderString;
 {
     if (!(self = [super init]))
@@ -131,6 +137,10 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     return self;
 }
 
+/**
+ * 只需要传入片段着色器代码，顶点着色器使用默认的
+ * @return
+ */
 - (id)init;
 {
     if (!(self = [self initWithFragmentShaderFromString:kGPUImagePassthroughFragmentShaderString]))
@@ -173,28 +183,36 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     usingNextFrameForImageCapture = YES;
 
     // Set the semaphore high, if it isn't already
+    //等待信号量，就是等待吧
     if (dispatch_semaphore_wait(imageCaptureSemaphore, DISPATCH_TIME_NOW) != 0)
     {
         return;
     }
 }
 
+/**
+ * 从当前的Process获取新的CGImage
+ * @return
+ */
 - (CGImageRef)newCGImageFromCurrentlyProcessedOutput
 {
     // Give it three seconds to process, then abort if they forgot to set up the image capture properly
     double timeoutForImageCapture = 3.0;
+    //定义超时时间
     dispatch_time_t convertedTimeout = dispatch_time(DISPATCH_TIME_NOW, timeoutForImageCapture * NSEC_PER_SEC);
-
+    //等待信号量，如果超时，退出。 否则一直等待
     if (dispatch_semaphore_wait(imageCaptureSemaphore, convertedTimeout) != 0)
     {
         return NULL;
     }
 
+    //返回对FrameBuffer的封装，封装了Framebuffer所有的操作
     GPUImageFramebuffer* framebuffer = [self framebufferForOutput];
     
     usingNextFrameForImageCapture = NO;
+    //释放信号量
     dispatch_semaphore_signal(imageCaptureSemaphore);
-    
+    //从frameBuffer封装中，获取CGIMageRef
     CGImageRef image = [framebuffer newCGImageFromFramebufferContents];
     return image;
 }
@@ -202,8 +220,10 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
 #pragma mark -
 #pragma mark Managing the display FBOs
 
+//FBO 是帧缓冲对象， O是Object的简称
 - (CGSize)sizeOfFBO;
 {
+    //取最小的的Size
     CGSize outputSize = [self maximumOutputSize];
     if ( (CGSizeEqualToSize(outputSize, CGSizeZero)) || (inputTextureSize.width < outputSize.width) )
     {
@@ -289,6 +309,11 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     }
 }
 
+/**
+ * 使用顶点渲染纹理
+ * @param vertices
+ * @param textureCoordinates
+ */
 - (void)renderToTextureWithVertices:(const GLfloat *)vertices textureCoordinates:(const GLfloat *)textureCoordinates;
 {
     if (self.preventRendering)
@@ -296,7 +321,8 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
         [firstInputFramebuffer unlock];
         return;
     }
-    
+
+    //设置当前的filterProgram
     [GPUImageContext setActiveShaderProgram:filterProgram];
 
     outputFramebuffer = [[GPUImageContext sharedFramebufferCache] fetchFramebufferForSize:[self sizeOfFBO] textureOptions:self.outputTextureOptions onlyTexture:NO];
@@ -373,6 +399,10 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     }
 }
 
+/**
+ * 获取输出的帧大小
+ * @return
+ */
 - (CGSize)outputFrameSize;
 {
     return inputTextureSize;
@@ -381,6 +411,13 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
 #pragma mark -
 #pragma mark Input parameters
 
+/**
+ * 设置背景色
+ * @param redComponent  红色
+ * @param greenComponent 绿色
+ * @param blueComponent  蓝色
+ * @param alphaComponent  透明通道
+ */
 - (void)setBackgroundColorRed:(GLfloat)redComponent green:(GLfloat)greenComponent blue:(GLfloat)blueComponent alpha:(GLfloat)alphaComponent;
 {
     backgroundColorRed = redComponent;
@@ -395,6 +432,11 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     [self setInteger:newInteger forUniform:uniformIndex program:filterProgram];
 }
 
+/**
+ * 设置程序参数
+ * @param newFloat （封装了各种类型的数据）
+ * @param uniformName
+ */
 - (void)setFloat:(GLfloat)newFloat forUniformName:(NSString *)uniformName;
 {
     GLint uniformIndex = [filterProgram uniformIndex:uniformName];
@@ -452,11 +494,18 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     });
 }
 
+/**
+ * 设置程序参数
+ * @param floatValue
+ * @param uniform 表示变量值的代号
+ * @param shaderProgram
+ */
 - (void)setFloat:(GLfloat)floatValue forUniform:(GLint)uniform program:(GLProgram *)shaderProgram;
 {
     runAsynchronouslyOnVideoProcessingQueue(^{
         [GPUImageContext setActiveShaderProgram:shaderProgram];
         [self setAndExecuteUniformStateCallbackAtIndex:uniform forProgram:shaderProgram toBlock:^{
+            //设置当前着色器变量值,
             glUniform1f(uniform, floatValue);
         }];
     });
@@ -506,7 +555,7 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
 {
     runAsynchronouslyOnVideoProcessingQueue(^{
         [GPUImageContext setActiveShaderProgram:shaderProgram];
-        
+
         [self setAndExecuteUniformStateCallbackAtIndex:uniform forProgram:shaderProgram toBlock:^{
             glUniform4fv(uniform, 1, (GLfloat *)&vectorValue);
         }];
@@ -544,6 +593,10 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     uniformStateBlock();
 }
 
+/**
+ * 这个是调用保存了所有Block回调的地方
+ * @param programIndex
+ */
 - (void)setUniformsForProgramAtIndex:(NSUInteger)programIndex;
 {
     [uniformStateRestorationBlocks enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
@@ -566,6 +619,8 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     
     [self renderToTextureWithVertices:imageVertices textureCoordinates:[[self class] textureCoordinatesForRotation:inputRotation]];
 
+    //通知新的Frame
+    //这种都是一级一级循环通知的，因为filter本身也可以连接filter的
     [self informTargetsAboutNewFrameAtTime:frameTime];
 }
 
@@ -580,6 +635,12 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     [firstInputFramebuffer lock];
 }
 
+/**
+ * 计算旋转之后的Size
+ * @param sizeToRotate
+ * @param textureIndex
+ * @return
+ */
 - (CGSize)rotatedSize:(CGSize)sizeToRotate forIndex:(NSInteger)textureIndex;
 {
     CGSize rotatedSize = sizeToRotate;
@@ -653,7 +714,9 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
         }
         else
         {
-            CGRect insetRect = AVMakeRectWithAspectRatioInsideRect(newSize, CGRectMake(0.0, 0.0, forcedMaximumSize.width, forcedMaximumSize.height));
+            //尽可能的放大
+            CGRect insetRect = AVMakeRectWithAspectRatioInsideRect(newSize,
+                    CGRectMake(0.0, 0.0, forcedMaximumSize.width, forcedMaximumSize.height));
             inputTextureSize = insetRect.size;
         }
     }

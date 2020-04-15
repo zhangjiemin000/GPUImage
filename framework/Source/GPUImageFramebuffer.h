@@ -39,7 +39,13 @@ typedef struct GPUTextureOptions {
 - (void)activateFramebuffer;
 
 // Reference counting
+/**
+ * Lock 是对Framebuffer的计数维护
+ */
 - (void)lock;
+/**
+ * 当FrameBuffer计数维护数量为0时，会将这个buffer置为缓存
+ */
 - (void)unlock;
 - (void)clearAllLocks;
 - (void)disableReferenceCounting;
