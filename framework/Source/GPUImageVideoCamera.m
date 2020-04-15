@@ -640,6 +640,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             
             if (currentTarget != self.targetToIgnoreForUpdates)
             {
+                //应该是通知所有附着在本实例上面的处理模块，新的图像到了，可以开始渲染了，所以target列表的顺序就是滤镜的顺序
                 [currentTarget newFrameReadyAtTime:currentTime atIndex:textureIndexOfTarget];
             }
         }
@@ -843,14 +844,21 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
                 fetchFramebufferForSize:CGSizeMake(bytesPerRow / 4, bufferHeight) onlyTexture:YES];
         [outputFramebuffer activateFramebuffer];
 
+        //绑定当前的frameBuffer纹理到GL_TEXTURE_2D
         glBindTexture(GL_TEXTURE_2D, [outputFramebuffer texture]);
         
         //        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bufferWidth, bufferHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, CVPixelBufferGetBaseAddress(cameraFrame));
         
         // Using BGRA extension to pull in video frame data directly
         // The use of bytesPerRow / 4 accounts for a display glitch present in preview video frames when using the photo preset on the camera
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bytesPerRow / 4, bufferHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, CVPixelBufferGetBaseAddress(cameraFrame));
-        
+        //复制数据到纹理
+        glTexImage2D(GL_TEXTURE_2D,
+                0, GL_RGBA,
+                bytesPerRow / 4, bufferHeight, 0,
+                GL_BGRA, GL_UNSIGNED_BYTE,
+                CVPixelBufferGetBaseAddress(cameraFrame));
+
+        //触发更新所有的滤镜资源
         [self updateTargetsForVideoCameraUsingCacheTextureAtWidth:bytesPerRow / 4 height:bufferHeight time:currentTime];
         
         CVPixelBufferUnlockBaseAddress(cameraFrame, 0);
@@ -967,7 +975,8 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             {
                 [self.delegate willOutputSampleBuffer:sampleBuffer];
             }
-            
+
+            //这里就是直接复制了sampleBuffer的内容到GPU
             [self processVideoSampleBuffer:sampleBuffer];
             
             CFRelease(sampleBuffer);
@@ -993,6 +1002,9 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     [super setAudioEncodingTarget:newValue];
 }
 
+/**
+ * 更新视频方向
+ */
 - (void)updateOrientationSendToTargets;
 {
     runSynchronouslyOnVideoProcessingQueue(^{
@@ -1111,6 +1123,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
         for (id<GPUImageInput> currentTarget in targets)
         {
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
+            //对所有的target设置旋转方向
             [currentTarget setInputRotation:outputRotation atIndex:[[targetTextureIndices objectAtIndex:indexOfObject] integerValue]];
         }
     });

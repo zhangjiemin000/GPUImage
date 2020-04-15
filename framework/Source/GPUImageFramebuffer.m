@@ -257,6 +257,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
 
 - (void)activateFramebuffer;
 {
+    //FrameBuffer 相当于与界面相关
     //激活当前的FrameBuffer
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     //更新当前的视图范围

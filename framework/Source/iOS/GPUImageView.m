@@ -86,20 +86,28 @@
     }
 
     inputRotation = kGPUImageNoRotation;
-    self.opaque = YES;
+    self.opaque = YES;  //设置这个View为不透明的，优化渲染速度
     self.hidden = NO;
+    //OPENGL的显示Layer
     CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
     eaglLayer.opaque = YES;
-    eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
+    //快速创建属性Dict
+    eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
+            [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking,
+            kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
 
     self.enabled = YES;
     
     runSynchronouslyOnVideoProcessingQueue(^{
         [GPUImageContext useImageProcessingContext];
-        
-        displayProgram = [[GPUImageContext sharedImageProcessingContext] programForVertexShaderString:kGPUImageVertexShaderString fragmentShaderString:kGPUImagePassthroughFragmentShaderString];
+        //获取自己的显示程序
+        //其实就是纹理直出，没有任何改变
+        displayProgram = [[GPUImageContext sharedImageProcessingContext]
+                programForVertexShaderString:kGPUImageVertexShaderString
+                        fragmentShaderString:kGPUImagePassthroughFragmentShaderString];
         if (!displayProgram.initialized)
         {
+            //增加Atrribute,顶点的外部程序输入
             [displayProgram addAttribute:@"position"];
             [displayProgram addAttribute:@"inputTextureCoordinate"];
             
@@ -115,12 +123,15 @@
                 NSAssert(NO, @"Filter shader link failed");
             }
         }
-        
+        //获取Attribute参数的索引
         displayPositionAttribute = [displayProgram attributeIndex:@"position"];
+        //获取Attribute参数的索引
         displayTextureCoordinateAttribute = [displayProgram attributeIndex:@"inputTextureCoordinate"];
+        //片段着色器的索引
         displayInputTextureUniform = [displayProgram uniformIndex:@"inputImageTexture"]; // This does assume a name of "inputTexture" for the fragment shader
-
+        //设置当前的程序为DisplayProgram
         [GPUImageContext setActiveShaderProgram:displayProgram];
+        //使能当前的参数
         glEnableVertexAttribArray(displayPositionAttribute);
         glEnableVertexAttribArray(displayTextureCoordinateAttribute);
         
@@ -155,6 +166,10 @@
 #pragma mark -
 #pragma mark Managing the display FBOs
 
+/**
+ * 创建当前的FrameBuffer
+ * 创建DisplayBuffer
+ */
 - (void)createDisplayFramebuffer;
 {
     [GPUImageContext useImageProcessingContext];
@@ -165,7 +180,8 @@
     glGenRenderbuffers(1, &displayRenderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, displayRenderbuffer);
 	
-    [[[GPUImageContext sharedImageProcessingContext] context] renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+    [[[GPUImageContext sharedImageProcessingContext] context]
+            renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
 	
     GLint backingWidth, backingHeight;
 
