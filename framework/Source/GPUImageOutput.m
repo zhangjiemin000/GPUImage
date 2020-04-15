@@ -206,6 +206,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 
 - (void)addTarget:(id<GPUImageInput>)newTarget;
 {
+    //获取Target下一个有效的纹理ID，纯色滤镜没有纹理ID
     NSInteger nextAvailableTextureIndex = [newTarget nextAvailableTextureIndex];
     [self addTarget:newTarget atTextureLocation:nextAvailableTextureIndex];
     
@@ -217,6 +218,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 
 - (void)addTarget:(id<GPUImageInput>)newTarget atTextureLocation:(NSInteger)textureLocation;
 {
+    //如果已经有对应的target，则退出
     if([targets containsObject:newTarget])
     {
         return;
@@ -224,6 +226,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     
     cachedMaximumOutputSize = CGSizeZero;
     runSynchronouslyOnVideoProcessingQueue(^{
+        //设置FrameBuffer， 设置的输入buffer，为当前的输出buffer
         [self setInputFramebufferForTarget:newTarget atIndex:textureLocation];
         [targets addObject:newTarget];
         [targetTextureIndices addObject:[NSNumber numberWithInteger:textureLocation]];
