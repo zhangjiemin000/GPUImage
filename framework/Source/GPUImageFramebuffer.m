@@ -1,11 +1,16 @@
 #import "GPUImageFramebuffer.h"
 #import "GPUImageOutput.h"
 
+/**
+ * 对Framebuffer的封装
+ */
 @interface GPUImageFramebuffer()
 {
     GLuint framebuffer;
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
+    //CVPixelBufferRef， GL的表示
     CVPixelBufferRef renderTarget;
+    //纹理
     CVOpenGLESTextureRef renderTexture;
     NSUInteger readLockCount;
 #else
@@ -45,7 +50,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
     framebufferReferenceCount = 0;
     referenceCountingDisabled = NO;
     _missingFramebuffer = onlyGenerateTexture;
-
+    //如果不要产生framebuffer
     if (_missingFramebuffer)
     {
         runSynchronouslyOnVideoProcessingQueue(^{
@@ -56,6 +61,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
     }
     else
     {
+        //如果需要产生FrameBuffer
         [self generateFramebuffer];
     }
     return self;
@@ -114,6 +120,9 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
 #pragma mark -
 #pragma mark Internal
 
+/**
+ * 新建纹理 texture
+ */
 - (void)generateTexture;
 {
     glActiveTexture(GL_TEXTURE1);
@@ -131,10 +140,11 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
 - (void)generateFramebuffer;
 {
     runSynchronouslyOnVideoProcessingQueue(^{
+
         [GPUImageContext useImageProcessingContext];
     
-        glGenFramebuffers(1, &framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glGenFramebuffers(1, &framebuffer);  //生成framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  //绑定Framebuffer
         
         // By default, all framebuffers on iOS 5.0+ devices are backed by texture caches, using one shared cache
         if ([GPUImageContext supportsFastTextureUpload])
@@ -148,14 +158,15 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
             empty = CFDictionaryCreate(kCFAllocatorDefault, NULL, NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks); // our empty IOSurface properties dictionary
             attrs = CFDictionaryCreateMutable(kCFAllocatorDefault, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
             CFDictionarySetValue(attrs, kCVPixelBufferIOSurfacePropertiesKey, empty);
-            
+            //创建CVPixelBuffer
             CVReturn err = CVPixelBufferCreate(kCFAllocatorDefault, (int)_size.width, (int)_size.height, kCVPixelFormatType_32BGRA, attrs, &renderTarget);
             if (err)
             {
                 NSLog(@"FBO size: %f, %f", _size.width, _size.height);
                 NSAssert(NO, @"Error at CVPixelBufferCreate %d", err);
             }
-            
+            //将CVPixelBuffer 与 OpenGL Texture 绑定起来
+            //GPU的 Texture 在IOS中的表示就是 CVOpenGLESTextureRef
             err = CVOpenGLESTextureCacheCreateTextureFromImage (kCFAllocatorDefault, coreVideoTextureCache, renderTarget,
                                                                 NULL, // texture attributes
                                                                 GL_TEXTURE_2D,
@@ -175,10 +186,11 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
             CFRelease(empty);
             
             glBindTexture(CVOpenGLESTextureGetTarget(renderTexture), CVOpenGLESTextureGetName(renderTexture));
+            //直接就获取了纹理ID
             _texture = CVOpenGLESTextureGetName(renderTexture);
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _textureOptions.wrapS);
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _textureOptions.wrapT);
-            
+            //把纹理和当前的Framebuffer绑定在一起
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, CVOpenGLESTextureGetName(renderTexture), 0);
 #endif
         }
@@ -193,8 +205,10 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
         }
         
         #ifndef NS_BLOCK_ASSERTIONS
+        //检查当前的FrameBuffer的情况
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         NSAssert(status == GL_FRAMEBUFFER_COMPLETE, @"Incomplete filter FBO: %d", status);
+
         #endif
         
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -208,6 +222,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
         
         if (framebuffer)
         {
+            //解绑Frambuffer，并删除
             glDeleteFramebuffers(1, &framebuffer);
             framebuffer = 0;
         }
@@ -242,7 +257,10 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
 
 - (void)activateFramebuffer;
 {
+    //FrameBuffer 相当于与界面相关
+    //激活当前的FrameBuffer
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    //更新当前的视图范围
     glViewport(0, 0, (int)_size.width, (int)_size.height);
 }
 
@@ -306,6 +324,10 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
     [[GPUImageContext sharedFramebufferCache] removeFramebufferFromActiveImageCaptureList:framebuffer];
 }
 
+/**
+ * 从Framebuffer中获取图像数据，返回CGImage
+ * @return
+ */
 - (CGImageRef)newCGImageFromFramebufferContents;
 {
     // a CGImage can only be created from a 'normal' color texture
@@ -316,7 +338,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
     
     runSynchronouslyOnVideoProcessingQueue(^{
         [GPUImageContext useImageProcessingContext];
-        
+        //拿到当前的总bytes数
         NSUInteger totalBytesForImage = (int)_size.width * (int)_size.height * 4;
         // It appears that the width of a texture must be padded out to be a multiple of 8 (32 bytes) if reading from it using a texture cache
         
@@ -326,13 +348,17 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
         if ([GPUImageContext supportsFastTextureUpload])
         {
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
+            //获取width
             NSUInteger paddedWidthOfImage = CVPixelBufferGetBytesPerRow(renderTarget) / 4.0;
+            //获取一行多少个bytes
             NSUInteger paddedBytesForImage = paddedWidthOfImage * (int)_size.height * 4;
             
             glFinish();
             CFRetain(renderTarget); // I need to retain the pixel buffer here and release in the data source callback to prevent its bytes from being prematurely deallocated during a photo write operation
             [self lockForReading];
+            //获取当前的CVPixelbuffer原始数据
             rawImagePixels = (GLubyte *)CVPixelBufferGetBaseAddress(renderTarget);
+            //创建CGProvider，可以用来创建CGImage
             dataProvider = CGDataProviderCreateWithData((__bridge_retained void*)self, rawImagePixels, paddedBytesForImage, dataProviderUnlockCallback);
             [[GPUImageContext sharedFramebufferCache] addFramebufferToActiveImageCaptureList:self]; // In case the framebuffer is swapped out on the filter, need to have a strong reference to it somewhere for it to hang on while the image is in existence
 #else
@@ -346,12 +372,13 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
             dataProvider = CGDataProviderCreateWithData(NULL, rawImagePixels, totalBytesForImage, dataProviderReleaseCallback);
             [self unlock]; // Don't need to keep this around anymore
         }
-        
+        //获取当前的CGColor 空间
         CGColorSpaceRef defaultRGBColorSpace = CGColorSpaceCreateDeviceRGB();
         
         if ([GPUImageContext supportsFastTextureUpload])
         {
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
+            //创建CGImage
             cgImageFromBytes = CGImageCreate((int)_size.width, (int)_size.height, 8, 32, CVPixelBufferGetBytesPerRow(renderTarget), defaultRGBColorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst, dataProvider, NULL, NO, kCGRenderingIntentDefault);
 #else
 #endif
@@ -381,7 +408,9 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
 
 #pragma mark -
 #pragma mark Raw data bytes
-
+/**
+ * 自己维护一套计数器
+ */
 - (void)lockForReading
 {
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
@@ -396,6 +425,9 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
 #endif
 }
 
+/**
+ * 自己维护一套计数器， 除非被清零，才会解锁LockBaseAddress
+ */
 - (void)unlockAfterReading
 {
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE

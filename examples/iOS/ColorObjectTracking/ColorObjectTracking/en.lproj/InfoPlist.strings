@@ -1,2 +1,14 @@
 /* Localized versions of Info.plist keys */
 
+/*
+  Info.strings
+  FancyCam
+
+  Created by delegate on 2020/1/6.
+  Copyright © 2020 FancyCam. All rights reserved.
+*/
+NSCameraUsageDescription = "We need access to your camera permissions to take photos and edit it.";
+
+NSPhotoLibraryAdditionsUsageDescription = "We need access to your album permissions to store image or select photos.";
+
+NSPhotoLibraryUsageDescription = "We need access to your album permissions to store image or select photos.";

@@ -26,8 +26,14 @@ void runOnMainQueueWithoutDeadlocking(void (^block)(void))
 	}
 }
 
+/**
+ * VideoProcssing Queue
+ * 将block放置在串行队列当中
+ * @param block
+ */
 void runSynchronouslyOnVideoProcessingQueue(void (^block)(void))
 {
+    //获取GPUImage Queue
     dispatch_queue_t videoProcessingQueue = [GPUImageContext sharedContextQueue];
 #if !OS_OBJECT_USE_OBJC
 #pragma clang diagnostic push
@@ -37,14 +43,17 @@ void runSynchronouslyOnVideoProcessingQueue(void (^block)(void))
 #else
 	if (dispatch_get_specific([GPUImageContext contextKey]))
 #endif
-	{
-		block();
-	}else
-	{
-		dispatch_sync(videoProcessingQueue, block);
-	}
+    {
+        block();
+    } else {
+        dispatch_sync(videoProcessingQueue, block);
+    }
 }
 
+/**
+ * 异步跑队列，对顺序不敏感的 block
+ * @param block
+ */
 void runAsynchronouslyOnVideoProcessingQueue(void (^block)(void))
 {
     dispatch_queue_t videoProcessingQueue = [GPUImageContext sharedContextQueue];
@@ -65,6 +74,11 @@ void runAsynchronouslyOnVideoProcessingQueue(void (^block)(void))
 	}
 }
 
+/**
+ * 获取Context中定义的队列，同步执行 block
+ * @param context
+ * @param block
+ */
 void runSynchronouslyOnContextQueue(GPUImageContext *context, void (^block)(void))
 {
     dispatch_queue_t videoProcessingQueue = [context contextQueue];
@@ -84,6 +98,11 @@ void runSynchronouslyOnContextQueue(GPUImageContext *context, void (^block)(void
         }
 }
 
+/**
+ * 获取Context中定义的队列，异步执行 block
+ * @param context
+ * @param block
+ */
 void runAsynchronouslyOnContextQueue(GPUImageContext *context, void (^block)(void))
 {
     dispatch_queue_t videoProcessingQueue = [context contextQueue];
@@ -154,12 +173,13 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     usingNextFrameForImageCapture = NO;
     
     // set default texture options
+    //设置默认的GPU输出格式
     _outputTextureOptions.minFilter = GL_LINEAR;
     _outputTextureOptions.magFilter = GL_LINEAR;
     _outputTextureOptions.wrapS = GL_CLAMP_TO_EDGE;
     _outputTextureOptions.wrapT = GL_CLAMP_TO_EDGE;
-    _outputTextureOptions.internalFormat = GL_RGBA;
-    _outputTextureOptions.format = GL_BGRA;
+    _outputTextureOptions.internalFormat = GL_RGBA;  //内部的颜色空间
+    _outputTextureOptions.format = GL_BGRA;  //最终的格式
     _outputTextureOptions.type = GL_UNSIGNED_BYTE;
 
     return self;
@@ -175,9 +195,14 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 
 - (void)setInputFramebufferForTarget:(id<GPUImageInput>)target atIndex:(NSInteger)inputTextureIndex;
 {
+    //满足GPUImageInput协议的所有实例
     [target setInputFramebuffer:[self framebufferForOutput] atIndex:inputTextureIndex];
 }
 
+/**
+ * 返回对FrameBuffer的封装，封装了Framebuffer所有的操作
+ * @return
+ */
 - (GPUImageFramebuffer *)framebufferForOutput;
 {
     return outputFramebuffer;
@@ -206,8 +231,10 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 
 - (void)addTarget:(id<GPUImageInput>)newTarget;
 {
+    //获取下一个可用的纹理Index
     //获取Target下一个有效的纹理ID，纯色滤镜没有纹理ID
     NSInteger nextAvailableTextureIndex = [newTarget nextAvailableTextureIndex];
+    //添加上去
     [self addTarget:newTarget atTextureLocation:nextAvailableTextureIndex];
     
     if ([newTarget shouldIgnoreUpdatesToThisTarget])
@@ -300,7 +327,10 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 {
 
 }
-
+/**
+ * 这是一个抽象方法，看哪个实例继承了这个写法
+ * @return
+ */
 - (CGImageRef)newCGImageFromCurrentlyProcessedOutput;
 {
     return nil;
@@ -312,7 +342,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     
     [self useNextFrameForImageCapture];
     [stillImageSource addTarget:(id<GPUImageInput>)self];
-    [stillImageSource processImage];
+    [stillImageSource processImage];  //对新建的GPUImagePicture进行属性赋值
     
     CGImageRef processedImage = [self newCGImageFromCurrentlyProcessedOutput];
     
@@ -330,8 +360,13 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
 
+/**
+ * 从Framebuffer中获取Image
+ * @return
+ */
 - (UIImage *)imageFromCurrentFramebuffer;
 {
+    //获取当前设备的旋转方向
 	UIDeviceOrientation deviceOrientation = [[UIDevice currentDevice] orientation];
     UIImageOrientation imageOrientation = UIImageOrientationLeft;
 	switch (deviceOrientation)
@@ -355,16 +390,25 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     
     return [self imageFromCurrentFramebufferWithOrientation:imageOrientation];
 }
-
+/**
+ * 真正的实现类，从当前FrameBuffer中获取图片
+ * @param imageOrientation
+ * @return
+ */
 - (UIImage *)imageFromCurrentFramebufferWithOrientation:(UIImageOrientation)imageOrientation;
 {
-    CGImageRef cgImageFromBytes = [self newCGImageFromCurrentlyProcessedOutput];
+    CGImageRef cgImageFromBytes = [self newCGImageFromCurrentlyProcessedOutput]; //这里是父类，所以没有实现这个方法，所以只能从子类的实现中，拿到CGImageRef的数据
     UIImage *finalImage = [UIImage imageWithCGImage:cgImageFromBytes scale:1.0 orientation:imageOrientation];
     CGImageRelease(cgImageFromBytes);
     
     return finalImage;
 }
 
+/**
+ * 新建图片
+ * @param imageToFilter
+ * @return
+ */
 - (UIImage *)imageByFilteringImage:(UIImage *)imageToFilter;
 {
     CGImageRef image = [self newCGImageByFilteringCGImage:[imageToFilter CGImage]];
@@ -373,6 +417,11 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     return processedImage;
 }
 
+/**
+ * UIImage -> CGImageRef
+ * @param imageToFilter
+ * @return
+ */
 - (CGImageRef)newCGImageByFilteringImage:(UIImage *)imageToFilter
 {
     return [self newCGImageByFilteringCGImage:[imageToFilter CGImage]];
@@ -424,18 +473,21 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 -(void)setOutputTextureOptions:(GPUTextureOptions)outputTextureOptions
 {
     _outputTextureOptions = outputTextureOptions;
-    
+    //outputFramebuffer，是GPUFramebuffer的封装，对应Texture
     if( outputFramebuffer.texture )
     {
+        //绑定纹理，将Framebuffer绑定到GL_TEXTURE_2D上
         glBindTexture(GL_TEXTURE_2D,  outputFramebuffer.texture);
         //_outputTextureOptions.format
         //_outputTextureOptions.internalFormat
         //_outputTextureOptions.magFilter
         //_outputTextureOptions.minFilter
         //_outputTextureOptions.type
+        //设置属性
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _outputTextureOptions.wrapS);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _outputTextureOptions.wrapT);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        //
+        glBindTexture(GL_TEXTURE_2D, 0);  //恢复到默认的状态，但是属性已经改变了，这个方法只做这个事情
     }
 }
 

@@ -14,7 +14,7 @@ NSString *const kGPUImageColorMatrixFragmentShaderString = SHADER_STRING
  {
      lowp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);
      lowp vec4 outputColor = textureColor * colorMatrix;
-     
+     //着色器程序
      gl_FragColor = (intensity * outputColor) + ((1.0 - intensity) * textureColor);
  }
 );
@@ -48,15 +48,17 @@ NSString *const kGPUImageColorMatrixFragmentShaderString = SHADER_STRING
 
 - (id)init;
 {
+    //输入片段着色器程序，顶点着色器程序为默认值
     if (!(self = [super initWithFragmentShaderFromString:kGPUImageColorMatrixFragmentShaderString]))
     {
         return nil;
     }
-    
+
+    //获取对应程序变量的索引
     colorMatrixUniform = [filterProgram uniformIndex:@"colorMatrix"];
     intensityUniform = [filterProgram uniformIndex:@"intensity"];
     
-    self.intensity = 1.f;
+    self.intensity = 1;
     self.colorMatrix = (GPUMatrix4x4){
         {1.f, 0.f, 0.f, 0.f},
         {0.f, 1.f, 0.f, 0.f},

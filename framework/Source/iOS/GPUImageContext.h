@@ -50,15 +50,25 @@ typedef NS_ENUM(NSUInteger, GPUImageRotationMode) {
 @end
 
 @protocol GPUImageInput <NSObject>
+        /**
+         *  这个是通知可以开始进行渲染了
+         * @param frameTime
+         * @param textureIndex
+         */
 - (void)newFrameReadyAtTime:(CMTime)frameTime atIndex:(NSInteger)textureIndex;
+
 - (void)setInputFramebuffer:(GPUImageFramebuffer *)newInputFramebuffer atIndex:(NSInteger)textureIndex;
+//下一个可用的纹理Index
 - (NSInteger)nextAvailableTextureIndex;
 - (void)setInputSize:(CGSize)newSize atIndex:(NSInteger)textureIndex;
 - (void)setInputRotation:(GPUImageRotationMode)newInputRotation atIndex:(NSInteger)textureIndex;
 - (CGSize)maximumOutputSize;
+
+//对所有的target都调用endProcessing（其实是实现了这个接口的GPUImageoutput）
 - (void)endProcessing;
+//是否需要忽略更新
 - (BOOL)shouldIgnoreUpdatesToThisTarget;
-- (BOOL)enabled;
-- (BOOL)wantsMonochromeInput;
+- (BOOL)enabled;  //GPUImageVideoCamera 只有这个实现了这个方法
+- (BOOL)wantsMonochromeInput;  //Monochrome 单色
 - (void)setCurrentlyReceivingMonochromeInput:(BOOL)newValue;
 @end

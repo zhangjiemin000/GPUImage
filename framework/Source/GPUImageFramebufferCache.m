@@ -37,6 +37,7 @@
     
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
     __unsafe_unretained __typeof__ (self) weakSelf = self;
+    //如果收到内存警告，销毁所有未被指派的framBuffers
     memoryWarningObserver = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidReceiveMemoryWarningNotification object:nil queue:nil usingBlock:^(NSNotification *note) {
         __typeof__ (self) strongSelf = weakSelf;
         if (strongSelf) {
@@ -78,6 +79,7 @@
     }
 }
 
+//找到对应大小的Framebuffer，从cache中
 - (GPUImageFramebuffer *)fetchFramebufferForSize:(CGSize)framebufferSize textureOptions:(GPUTextureOptions)textureOptions onlyTexture:(BOOL)onlyTexture;
 {
     __block GPUImageFramebuffer *framebufferFromCache = nil;
@@ -89,6 +91,7 @@
         
         if ([numberOfMatchingTexturesInCache integerValue] < 1)
         {
+            //如果没有FrameBuffer，新建
             // Nothing in the cache, create a new framebuffer to use
             framebufferFromCache = [[GPUImageFramebuffer alloc] initWithSize:framebufferSize textureOptions:textureOptions onlyTexture:onlyTexture];
         }
@@ -120,7 +123,7 @@
         }
     });
 
-    [framebufferFromCache lock];
+    [framebufferFromCache lock];   //buffer引用计数+1
     return framebufferFromCache;
 }
 
