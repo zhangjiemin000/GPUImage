@@ -149,7 +149,8 @@
 //    UIImage *resultImage = [UIImage imageWithCIImage:result]; // This gives a nil image, because it doesn't render, unless I'm doing something wrong
 
     //从CIImage拷贝出CGImage
-    CGImageRef resultRef = [coreImageContext createCGImage:result fromRect:CGRectMake(0, 0, imageToProcess.size.width, imageToProcess.size.height)];
+    CGImageRef resultRef = [coreImageContext createCGImage:result
+            fromRect:CGRectMake(0, 0, imageToProcess.size.width, imageToProcess.size.height)];
     //从CGImage到UIImage
     UIImage *resultImage = [UIImage imageWithCGImage:resultRef];
     CGImageRelease(resultRef);
