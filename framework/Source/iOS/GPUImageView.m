@@ -11,6 +11,8 @@
 @interface GPUImageView () 
 {
     GPUImageFramebuffer *inputFramebufferForDisplay;
+    //displayRenderBuffer是离屏渲染缓冲区，和FBO绑定的
+    //FBO是一个连接对象，它绑定了RenderBuffer，和Texture2D，RenderBuffer 和屏幕进行绑定
     GLuint displayRenderbuffer, displayFramebuffer;
     
     GLProgram *displayProgram;
@@ -213,12 +215,14 @@
 {
     [GPUImageContext useImageProcessingContext];
 
+    //删除展示frameBuffer
     if (displayFramebuffer)
 	{
 		glDeleteFramebuffers(1, &displayFramebuffer);
 		displayFramebuffer = 0;
 	}
-	
+
+    //删除RenderBuffer
 	if (displayRenderbuffer)
 	{
 		glDeleteRenderbuffers(1, &displayRenderbuffer);
@@ -241,6 +245,7 @@
 
 - (void)presentFramebuffer;
 {
+    //展示displayRenderBuffer
     glBindRenderbuffer(GL_RENDERBUFFER, displayRenderbuffer);
     [[GPUImageContext sharedImageProcessingContext] presentBufferForDisplay];
 }
@@ -389,24 +394,29 @@
 
 #pragma mark -
 #pragma mark GPUInput protocol
-
+//通知可以渲染显示了
 - (void)newFrameReadyAtTime:(CMTime)frameTime atIndex:(NSInteger)textureIndex;
 {
     runSynchronouslyOnVideoProcessingQueue(^{
+        //直出程序
         [GPUImageContext setActiveShaderProgram:displayProgram];
+        //重新绑定DisplayFrameBuffer
         [self setDisplayFramebuffer];
         
         glClearColor(backgroundColorRed, backgroundColorGreen, backgroundColorBlue, backgroundColorAlpha);
+        //清除颜色Buffer和深度Buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
         glActiveTexture(GL_TEXTURE4);
+        //绑定纹理
         glBindTexture(GL_TEXTURE_2D, [inputFramebufferForDisplay texture]);
+        //设置参数
         glUniform1i(displayInputTextureUniform, 4);
         
         glVertexAttribPointer(displayPositionAttribute, 2, GL_FLOAT, 0, 0, imageVertices);
-        glVertexAttribPointer(displayTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, [GPUImageView textureCoordinatesForRotation:inputRotation]);
+        glVertexAttribPointer(displayTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0,
+                [GPUImageView textureCoordinatesForRotation:inputRotation]);
         
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);   //这个就很重要了，表示顶点绘制的方式，这个是4个点绘制了2个逆时针方向的三角形
         
         [self presentFramebuffer];
         [inputFramebufferForDisplay unlock];
@@ -421,6 +431,7 @@
 
 - (void)setInputFramebuffer:(GPUImageFramebuffer *)newInputFramebuffer atIndex:(NSInteger)textureIndex;
 {
+    //保留当前需要展示的画面
     inputFramebufferForDisplay = newInputFramebuffer;
     [inputFramebufferForDisplay lock];
 }
@@ -498,6 +509,7 @@
 
 - (void)setFillMode:(GPUImageFillModeType)newValue;
 {
+    //设置不同的扩展模式，重新计算显示的模式
     _fillMode = newValue;
     [self recalculateViewGeometry];
 }

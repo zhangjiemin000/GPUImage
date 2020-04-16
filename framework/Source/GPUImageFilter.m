@@ -324,19 +324,23 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
 
     //设置当前的filterProgram
     [GPUImageContext setActiveShaderProgram:filterProgram];
-
-    outputFramebuffer = [[GPUImageContext sharedFramebufferCache] fetchFramebufferForSize:[self sizeOfFBO] textureOptions:self.outputTextureOptions onlyTexture:NO];
+    //拿到outputFramebuffer，这个是可以通用的
+    outputFramebuffer = [[GPUImageContext sharedFramebufferCache]
+            fetchFramebufferForSize:[self sizeOfFBO] textureOptions:self.outputTextureOptions onlyTexture:NO];
+    //激活这个Framebuffer
     [outputFramebuffer activateFramebuffer];
     if (usingNextFrameForImageCapture)
     {
         [outputFramebuffer lock];
     }
 
+    //设置参数,还原参数
     [self setUniformsForProgramAtIndex:0];
     
     glClearColor(backgroundColorRed, backgroundColorGreen, backgroundColorBlue, backgroundColorAlpha);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    //将输入的Framebuffer绑定到2D上
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, [firstInputFramebuffer texture]);
 	
@@ -344,9 +348,9 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
 
     glVertexAttribPointer(filterPositionAttribute, 2, GL_FLOAT, 0, 0, vertices);
 	glVertexAttribPointer(filterTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, textureCoordinates);
-    
+    //绘制
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    
+    //释放这个
     [firstInputFramebuffer unlock];
     
     if (usingNextFrameForImageCapture)
@@ -610,6 +614,7 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
 
 - (void)newFrameReadyAtTime:(CMTime)frameTime atIndex:(NSInteger)textureIndex;
 {
+    //应用ImageFilter
     static const GLfloat imageVertices[] = {
         -1.0f, -1.0f,
         1.0f, -1.0f,

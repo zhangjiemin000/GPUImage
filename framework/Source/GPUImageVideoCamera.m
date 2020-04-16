@@ -628,6 +628,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     
     // Then release our hold on the local framebuffer to send it back to the cache as soon as it's no longer needed
     [outputFramebuffer unlock];
+    //本实例，清空Framebuffer，但是并不影响实际的Framebuffer
     outputFramebuffer = nil;
     
     // Finally, trigger rendering as needed
@@ -635,6 +636,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     {
         if ([currentTarget enabled])
         {
+            //拿到对应target的纹理ID
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
             NSInteger textureIndexOfTarget = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
             
@@ -649,6 +651,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 
 /**
  * 处理Video的图像帧
+ * 来了一帧
  * @param sampleBuffer
  */
 - (void)processVideoSampleBuffer:(CMSampleBufferRef)sampleBuffer;
@@ -764,16 +767,17 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             {
                 NSLog(@"Error at CVOpenGLESTextureCacheCreateTextureFromImage %d", err);
             }
-            
+
             chrominanceTexture = CVOpenGLESTextureGetName(chrominanceTextureRef);
             glBindTexture(GL_TEXTURE_2D, chrominanceTexture);
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            
+
 //            if (!allTargetsWantMonochromeData)
 //            {
-            //使用Opengl程序，对YUV转化为RGB
-                [self convertYUVToRGBOutput];
+            //使用Opengl程序，对YUV转化为RGB,结果放置在framebuffer中
+            [self convertYUVToRGBOutput];
+            //完成转换
 //            }
 
             int rotatedImageBufferWidth = bufferWidth, rotatedImageBufferHeight = bufferHeight;
@@ -783,7 +787,8 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
                 rotatedImageBufferWidth = bufferHeight;
                 rotatedImageBufferHeight = bufferWidth;
             }
-            
+
+            //通知其他滤镜可以开始处理了，如果最终链接到了屏幕，则会最终绘制到屏幕上
             [self updateTargetsForVideoCameraUsingCacheTextureAtWidth:rotatedImageBufferWidth height:rotatedImageBufferHeight time:currentTime];
             
             CVPixelBufferUnlockBaseAddress(cameraFrame, 0);
@@ -898,7 +903,9 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     }
 
     //获取对应的framebuffer
-    outputFramebuffer = [[GPUImageContext sharedFramebufferCache] fetchFramebufferForSize:CGSizeMake(rotatedImageBufferWidth, rotatedImageBufferHeight) textureOptions:self.outputTextureOptions onlyTexture:NO];
+    outputFramebuffer = [[GPUImageContext sharedFramebufferCache]
+            fetchFramebufferForSize:CGSizeMake(rotatedImageBufferWidth, rotatedImageBufferHeight)
+                     textureOptions:self.outputTextureOptions onlyTexture:NO];
     [outputFramebuffer activateFramebuffer];
 
     //clear画布
@@ -931,6 +938,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 	        [GPUImageFilter textureCoordinatesForRotation:internalRotation]);
 
 	//绘制三角形，从第0开始，4为顶点的数量
+	//这里已经完成转换
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
@@ -951,6 +959,12 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 #pragma mark -
 #pragma mark AVCaptureVideoDataOutputSampleBufferDelegate
 
+/**
+ * 这里就是数据驱动的源头
+ * @param captureOutput
+ * @param sampleBuffer
+ * @param connection
+ */
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
     if (!self.captureSession.isRunning)
@@ -963,6 +977,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     }
     else
     {
+        //这里如果拿不到信号量，会丢帧
         if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
         {
             return;

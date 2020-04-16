@@ -200,12 +200,13 @@
     benchmarkedGPUImageFilter = [[GPUImageGammaFilter alloc] init];
     [(GPUImageGammaFilter *)benchmarkedGPUImageFilter setGamma:0.75];
     //加入这个滤镜，并将这个滤镜的输入buffer，设置未videoCamera的输出buffer
+
     [videoCamera addTarget:benchmarkedGPUImageFilter];
     //初始化GPUImageView
     filterView = [[GPUImageView alloc] initWithFrame:self.view.bounds];
     //加入这个View
     [self.view addSubview:filterView];
-    //fitler加入这个view
+    //fitler加入这个view，filter加入这个View，表示最终图像是需要绘制到这个View上的
     [benchmarkedGPUImageFilter addTarget:filterView];
     //开始运行视频
     [videoCamera startCameraCapture];
