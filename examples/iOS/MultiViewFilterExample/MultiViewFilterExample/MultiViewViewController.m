@@ -24,11 +24,13 @@
     primaryView.backgroundColor = [UIColor blueColor];
 	self.view = primaryView;
 
+	//初始化一个VideoCamera
     videoCamera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPreset640x480 cameraPosition:AVCaptureDevicePositionBack];
     videoCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
     
     CGFloat halfWidth = round(mainScreenFrame.size.width / 2.0);
-    CGFloat halfHeight = round(mainScreenFrame.size.height / 2.0);    
+    CGFloat halfHeight = round(mainScreenFrame.size.height / 2.0);
+    //有4个输出的View
     view1 = [[GPUImageView alloc] initWithFrame:CGRectMake(0.0, 0.0, halfWidth, halfHeight)];
     view2 = [[GPUImageView alloc] initWithFrame:CGRectMake(halfWidth, 0.0, halfWidth, halfHeight)];
     view3 = [[GPUImageView alloc] initWithFrame:CGRectMake(0.0, halfHeight, halfWidth, halfHeight)];
@@ -37,7 +39,8 @@
     [self.view addSubview:view2];
     [self.view addSubview:view3];
     [self.view addSubview:view4];
-    
+
+    //定义两个filter
     GPUImageFilter *filter1 = [[[GPUImageFilter alloc] initWithFragmentShaderFromFile:@"Shader1"] autorelease];
     GPUImageFilter *filter2 = [[[GPUImageFilter alloc] initWithFragmentShaderFromFile:@"Shader2"] autorelease];
     GPUImageSepiaFilter *filter3 = [[[GPUImageSepiaFilter alloc] init] autorelease];
@@ -82,6 +85,7 @@
     [videoCamera addTarget:filter3];
     [filter3 addTarget:view4];
 
+    //开始加载
     [videoCamera startCameraCapture];
 }
 
