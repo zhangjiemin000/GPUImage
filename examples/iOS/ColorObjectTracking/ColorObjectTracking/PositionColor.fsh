@@ -1,6 +1,6 @@
 varying highp vec2 textureCoordinate;
 
-uniform sampler2D inputImageTexture;
+uniform sampler2D inputImageTexture;  //input-texture
 uniform mediump vec3 inputColor;
 uniform mediump float threshold;
 

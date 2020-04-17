@@ -52,13 +52,20 @@
     [GPUImageContext useImageProcessingContext];
     if ( (outputBGRA && ![GPUImageContext supportsFastTextureUpload]) || (!outputBGRA && [GPUImageContext supportsFastTextureUpload]) )
     {
-        dataProgram = [[GPUImageContext sharedImageProcessingContext] programForVertexShaderString:kGPUImageVertexShaderString fragmentShaderString:kGPUImageColorSwizzlingFragmentShaderString];
+        //这个程序，就是转换颜色空间范围的的，比如将RGBA->转换为BRGA
+        dataProgram = [[GPUImageContext sharedImageProcessingContext]
+                programForVertexShaderString:kGPUImageVertexShaderString
+                        fragmentShaderString:kGPUImageColorSwizzlingFragmentShaderString];
     }
     else
     {
-        dataProgram = [[GPUImageContext sharedImageProcessingContext] programForVertexShaderString:kGPUImageVertexShaderString fragmentShaderString:kGPUImagePassthroughFragmentShaderString];
+        //直出程序
+        dataProgram = [[GPUImageContext sharedImageProcessingContext]
+                programForVertexShaderString:kGPUImageVertexShaderString
+                        fragmentShaderString:kGPUImagePassthroughFragmentShaderString];
     }
- 
+
+    //如果没有被初始化过
     if (!dataProgram.initialized)
     {
         [dataProgram addAttribute:@"position"];
@@ -76,7 +83,8 @@
             NSAssert(NO, @"Filter shader link failed");
         }
     }
-    
+
+    //获取各个参数的索引地址
     dataPositionAttribute = [dataProgram attributeIndex:@"position"];
     dataTextureCoordinateAttribute = [dataProgram attributeIndex:@"inputTextureCoordinate"];
     dataInputTextureUniform = [dataProgram uniformIndex:@"inputImageTexture"];
@@ -96,6 +104,9 @@
 #pragma mark -
 #pragma mark Data access
 
+/**
+ * 绘制到内部非Framebuffer上（其实是纹理上）
+ */
 - (void)renderAtInternalSize;
 {
     [GPUImageContext setActiveShaderProgram:dataProgram];
@@ -144,6 +155,7 @@
 
 - (GPUByteColorVector)colorAtLocation:(CGPoint)locationInImage;
 {
+    //竟然可以直接转
     GPUByteColorVector *imageColorBytes = (GPUByteColorVector *)self.rawBytesForImage;
 //    NSLog(@"Row start");
 //    for (unsigned int currentXPosition = 0; currentXPosition < (imageSize.width * 2.0); currentXPosition++)
@@ -159,12 +171,14 @@
 //    NSLog(@"Byte 1: %d, %d, %d, byte 2: %d, %d, %d, byte 3: %d, %d, %d", byteAtOne.red, byteAtOne.green, byteAtOne.blue, byteAtWidth.red, byteAtWidth.green, byteAtWidth.blue, byteAtHeight.red, byteAtHeight.green, byteAtHeight.blue);
     
     CGPoint locationToPickFrom = CGPointZero;
+    //保护X、Y区域
     locationToPickFrom.x = MIN(MAX(locationInImage.x, 0.0), (imageSize.width - 1.0));
     locationToPickFrom.y = MIN(MAX((imageSize.height - locationInImage.y), 0.0), (imageSize.height - 1.0));
-    
+    //如果需要输出BGRA类型的
     if (outputBGRA)    
     {
-        GPUByteColorVector flippedColor = imageColorBytes[(int)(round((locationToPickFrom.y * imageSize.width) + locationToPickFrom.x))];
+        GPUByteColorVector flippedColor = imageColorBytes[(int)
+                (round((locationToPickFrom.y * imageSize.width) + locationToPickFrom.x))];
         GLubyte temporaryRed = flippedColor.red;
         
         flippedColor.red = flippedColor.blue;
@@ -184,7 +198,7 @@
 - (void)newFrameReadyAtTime:(CMTime)frameTime atIndex:(NSInteger)textureIndex;
 {
     hasReadFromTheCurrentFrame = NO;
-    
+    //使用AvaliableBlock()来回调新帧调用通知
     if (_newFrameAvailableBlock != NULL)
     {
         _newFrameAvailableBlock();
@@ -238,14 +252,20 @@
 #pragma mark -
 #pragma mark Accessors
 
+/**
+ * 懒加载
+ * @return
+ */
 - (GLubyte *)rawBytesForImage;
 {
     if ( (_rawBytesForImage == NULL) && (![GPUImageContext supportsFastTextureUpload]) )
     {
+        //先初始化内存
         _rawBytesForImage = (GLubyte *) calloc(imageSize.width * imageSize.height * 4, sizeof(GLubyte));
         hasReadFromTheCurrentFrame = NO;
     }
 
+    //如果已经从当前帧上读取
     if (hasReadFromTheCurrentFrame)
     {
         return _rawBytesForImage;
@@ -256,6 +276,7 @@
             // Note: the fast texture caches speed up 640x480 frame reads from 9.6 ms to 3.1 ms on iPhone 4S
             
             [GPUImageContext useImageProcessingContext];
+            //首先渲染到当前的Texture中
             [self renderAtInternalSize];
             
             if ([GPUImageContext supportsFastTextureUpload])

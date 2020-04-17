@@ -82,7 +82,8 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     runSynchronouslyOnVideoProcessingQueue(^{
         [GPUImageContext useImageProcessingContext];
 
-        filterProgram = [[GPUImageContext sharedImageProcessingContext] programForVertexShaderString:vertexShaderString fragmentShaderString:fragmentShaderString];
+        filterProgram = [[GPUImageContext sharedImageProcessingContext]
+                programForVertexShaderString:vertexShaderString fragmentShaderString:fragmentShaderString];
         
         if (!filterProgram.initialized)
         {
@@ -124,6 +125,7 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
     return self;
 }
 
+//从着色器程序中加载filter
 - (id)initWithFragmentShaderFromFile:(NSString *)fragmentShaderFilename;
 {
     NSString *fragmentShaderPathname = [[NSBundle mainBundle] pathForResource:fragmentShaderFilename ofType:@"fsh"];

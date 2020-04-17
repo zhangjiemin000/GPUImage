@@ -51,10 +51,13 @@
     videoCamera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPreset640x480 cameraPosition:AVCaptureDevicePositionBack];
     videoCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
     filteredVideoView = [[GPUImageView alloc] initWithFrame:CGRectMake(0.0, 0.0, mainScreenFrame.size.width, mainScreenFrame.size.height)];
+    //这个View添加到UI上
     [self.view addSubview:filteredVideoView];
 
     thresholdFilter = [[GPUImageFilter alloc] initWithFragmentShaderFromFile:@"Threshold"];
+    //设置参数了
     [thresholdFilter setFloat:thresholdSensitivity forUniformName:@"threshold"];
+    //这里也设置参数了
     [thresholdFilter setFloatVec3:thresholdColor forUniformName:@"inputColor"];
     positionFilter = [[GPUImageFilter alloc] initWithFragmentShaderFromFile:@"PositionColor"];
     [positionFilter setFloat:thresholdSensitivity forUniformName:@"threshold"];
@@ -66,17 +69,19 @@
     
     CGSize videoPixelSize = CGSizeMake(480.0, 640.0);
     
-    positionRawData = [[GPUImageRawDataOutput alloc] initWithImageSize:videoPixelSize resultsInBGRAFormat:YES];
+//    positionRawData = [[GPUImageRawDataOutput alloc] initWithImageSize:videoPixelSize resultsInBGRAFormat:YES];
     __unsafe_unretained ColorTrackingViewController *weakSelf = self;
-    [positionRawData setNewFrameAvailableBlock:^{
-        GLubyte *bytesForPositionData = weakSelf->positionRawData.rawBytesForImage;
-        CGPoint currentTrackingLocation = [weakSelf centroidFromTexture:bytesForPositionData ofSize:[weakSelf->positionRawData maximumOutputSize]];
-//        NSLog(@"Centroid from CPU: %f, %f", currentTrackingLocation.x, currentTrackingLocation.y);
-        CGSize currentViewSize = weakSelf.view.bounds.size;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            weakSelf->trackingDot.position = CGPointMake(currentTrackingLocation.x * currentViewSize.width, currentTrackingLocation.y * currentViewSize.height);
-        });
-    }];
+//    [positionRawData setNewFrameAvailableBlock:^{
+//        //RGBA
+//        GLubyte *bytesForPositionData = weakSelf->positionRawData.rawBytesForImage;
+//        CGPoint currentTrackingLocation = [weakSelf centroidFromTexture:bytesForPositionData ofSize:[weakSelf->positionRawData maximumOutputSize]];
+////        NSLog(@"Centroid from CPU: %f, %f", currentTrackingLocation.x, currentTrackingLocation.y);
+//        CGSize currentViewSize = weakSelf.view.bounds.size;
+//        //更新颜色点的位置
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            weakSelf->trackingDot.position = CGPointMake(currentTrackingLocation.x * currentViewSize.width, currentTrackingLocation.y * currentViewSize.height);
+//        });
+//    }];
     
     positionAverageColor = [[GPUImageAverageColor alloc] init];
     [positionAverageColor setColorAverageProcessingFinishedBlock:^(CGFloat redComponent, CGFloat greenComponent, CGFloat blueComponent, CGFloat alphaComponent, CMTime frameTime) {
@@ -180,6 +185,10 @@
 #pragma mark -
 #pragma mark Display mode switching
 
+/**
+ * 切换展示模式
+ * @param sender
+ */
 - (void)handleSwitchOfDisplayMode:(id)sender;
 {
     ColorTrackingDisplayMode newDisplayMode = [sender selectedSegmentIndex];
@@ -219,7 +228,10 @@
             }; break;
             case OBJECT_TRACKING: 
             {
+                //这种级联方式值得玩味，可以先显示，但是内部仍然可以处理
                 [videoCamera addTarget:filteredVideoView];
+                //这里的positionFilter输入不是FilterVideoView调用的，而是VideoCamera来调用，因为filterVideoView并没有
+                // 继承于GPUImageOutput
                 [videoCamera addTarget:positionFilter];
 //                [positionFilter addTarget:positionRawData]; // Enable this for CPU-based centroid computation
                 [positionFilter addTarget:positionAverageColor]; // Enable this for GPU-based centroid computation

@@ -20,7 +20,7 @@ vec4 maskPixel(vec3 pixelColor, vec3 maskColor)
     d = distance(normalizeColor(pixelColor), normalizeColor(maskColor));
     
     // If color difference is larger than threshold, return black.
-    calculatedColor =  (d > threshold)  ?  vec4(0.0)  :  vec4(1.0);
+    calculatedColor =  (d > threshold)  ?  vec4(0.0)  :  vec4(0.5);
     
 	//Multiply color by texture
 	return calculatedColor;
@@ -34,6 +34,6 @@ void main()
 	pixelColor = texture2D(inputImageTexture, textureCoordinate);
 	maskedColor = maskPixel(pixelColor.rgb, inputColor);
     
-	gl_FragColor = (maskedColor.a < 1.0) ? pixelColor : maskedColor;
+	gl_FragColor = (maskedColor.a < 0.5) ? pixelColor : maskedColor;
 }
 

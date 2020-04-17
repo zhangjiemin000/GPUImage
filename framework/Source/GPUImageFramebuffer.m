@@ -408,8 +408,9 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
 
 #pragma mark -
 #pragma mark Raw data bytes
+
 /**
- * 自己维护一套计数器
+ * 自己维护一套计数器, IOS层面的
  */
 - (void)lockForReading
 {

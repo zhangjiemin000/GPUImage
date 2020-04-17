@@ -133,7 +133,8 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
         CGSize currentStageSize = CGSizeMake(floor(inputTextureSize.width / pow(4.0, currentReduction + 1.0)), floor(inputTextureSize.height / pow(4.0, currentReduction + 1.0)));
 
         [outputFramebuffer unlock];
-        outputFramebuffer = [[GPUImageContext sharedFramebufferCache] fetchFramebufferForSize:currentStageSize textureOptions:self.outputTextureOptions onlyTexture:NO];
+        outputFramebuffer = [[GPUImageContext sharedFramebufferCache]
+                fetchFramebufferForSize:currentStageSize textureOptions:self.outputTextureOptions onlyTexture:NO];
         [outputFramebuffer activateFramebuffer];
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
