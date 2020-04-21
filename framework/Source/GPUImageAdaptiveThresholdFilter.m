@@ -17,7 +17,8 @@ NSString *const kGPUImageAdaptiveThresholdFragmentShaderString = SHADER_STRING
  {
      highp float blurredInput = texture2D(inputImageTexture, textureCoordinate).r;
      highp float localLuminance = texture2D(inputImageTexture2, textureCoordinate2).r;
-     highp float thresholdResult = step(blurredInput - 0.05, localLuminance);
+     //这里过滤了
+     highp float thresholdResult = step(blurredInput - 0.05, localLuminance);  //如果localLuminance小于blurredInput则返回0.0，否则返回1.0
      
      gl_FragColor = vec4(vec3(thresholdResult), 1.0);
  }
@@ -66,7 +67,6 @@ NSString *const kGPUImageAdaptiveThresholdFragmentShaderString = SHADER_STRING
     [self addFilter:luminanceFilter];
     
     // Second pass: perform a box blur
-    //
     boxBlurFilter = [[GPUImageBoxBlurFilter alloc] init];
     [self addFilter:boxBlurFilter];
     
