@@ -60,7 +60,8 @@ typedef struct GPUMatrix3x3 GPUMatrix3x3;
     GPUImageRotationMode inputRotation;
     
     BOOL currentlyReceivingMonochromeInput;
-    
+
+    //容量为10的GPU设置参数
     NSMutableDictionary *uniformStateRestorationBlocks;
     dispatch_semaphore_t imageCaptureSemaphore;
 }

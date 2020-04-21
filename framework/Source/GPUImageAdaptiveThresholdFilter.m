@@ -61,23 +61,28 @@ NSString *const kGPUImageAdaptiveThresholdFragmentShaderString = SHADER_STRING
     }
 
     // First pass: reduce to luminance
+    //luminance 统一都降低rgb的颜色
     GPUImageGrayscaleFilter *luminanceFilter = [[GPUImageGrayscaleFilter alloc] init];
     [self addFilter:luminanceFilter];
     
     // Second pass: perform a box blur
+    //
     boxBlurFilter = [[GPUImageBoxBlurFilter alloc] init];
     [self addFilter:boxBlurFilter];
     
     // Third pass: compare the blurred background luminance to the local value
+    //结合两个输入，一个输出
     GPUImageFilter *adaptiveThresholdFilter = [[GPUImageTwoInputFilter alloc] initWithFragmentShaderFromString:kGPUImageAdaptiveThresholdFragmentShaderString];
     [self addFilter:adaptiveThresholdFilter];
     
     [luminanceFilter addTarget:boxBlurFilter];
-    
+
+    //两个输入。所以要被加两次
     [boxBlurFilter addTarget:adaptiveThresholdFilter];
     // To prevent double updating of this filter, disable updates from the sharp luminance image side
     [luminanceFilter addTarget:adaptiveThresholdFilter];
-    
+
+    //设置初始化Fitlers和终端Filters
     self.initialFilters = [NSArray arrayWithObject:luminanceFilter];
     self.terminalFilter = adaptiveThresholdFilter;
     

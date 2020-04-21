@@ -7,7 +7,6 @@ NSString *const kGPUImageVertexShaderString = SHADER_STRING
 (
  attribute vec4 position;  //attribute般用attribute变量来表示一些顶点的数据，像我们写的三角形中就表示顶点的坐标
  attribute vec4 inputTextureCoordinate;
- 
  varying vec2 textureCoordinate; //varying变量是vertex shader和fragment shader之间做数据传递用的。
  
  void main()
@@ -87,6 +86,7 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
         
         if (!filterProgram.initialized)
         {
+            //如果有继承的类，则重写这个属性，继续初始化参数
             [self initializeAttributes];
             
             if (![filterProgram link])
@@ -605,6 +605,7 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
  */
 - (void)setUniformsForProgramAtIndex:(NSUInteger)programIndex;
 {
+
     [uniformStateRestorationBlocks enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
         dispatch_block_t currentBlock = obj;
         currentBlock();

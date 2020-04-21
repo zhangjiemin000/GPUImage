@@ -195,6 +195,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 
 - (void)setInputFramebufferForTarget:(id<GPUImageInput>)target atIndex:(NSInteger)inputTextureIndex;
 {
+
     //满足GPUImageInput协议的所有实例
     [target setInputFramebuffer:[self framebufferForOutput] atIndex:inputTextureIndex];
 }
@@ -229,9 +230,13 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 	return [NSArray arrayWithArray:targets];
 }
 
+/**
+ * addTarget，做的事情就是将本对象的输出纹理作为newTarget的输入纹理
+ * @param newTarget
+ */
 - (void)addTarget:(id<GPUImageInput>)newTarget;
 {
-    //获取下一个可用的纹理Index
+    //获取下一个可用的纹理Index，如果是TowInputTexture，则会判断是否已经使用过一个纹理了
     //获取Target下一个有效的纹理ID，纯色滤镜没有纹理ID
     NSInteger nextAvailableTextureIndex = [newTarget nextAvailableTextureIndex];
     //添加上去
@@ -254,6 +259,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     cachedMaximumOutputSize = CGSizeZero;
     runSynchronouslyOnVideoProcessingQueue(^{
         //设置FrameBuffer， 设置的输入buffer，为当前的输出buffer
+        //将NewTarget的输入纹理设置为当前的输出纹理
         [self setInputFramebufferForTarget:newTarget atIndex:textureLocation];
         [targets addObject:newTarget];
         [targetTextureIndices addObject:[NSNumber numberWithInteger:textureLocation]];

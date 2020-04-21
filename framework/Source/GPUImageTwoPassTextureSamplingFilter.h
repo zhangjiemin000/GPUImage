@@ -1,7 +1,12 @@
 #import "GPUImageTwoPassFilter.h"
 
+/**
+ * 继承于GPUImageTwoPassFilter，
+ */
 @interface GPUImageTwoPassTextureSamplingFilter : GPUImageTwoPassFilter
 {
+    //定义了两套变量
+    //就是定义了两套变量
     GLint verticalPassTexelWidthOffsetUniform, verticalPassTexelHeightOffsetUniform, horizontalPassTexelWidthOffsetUniform, horizontalPassTexelHeightOffsetUniform;
     GLfloat verticalPassTexelWidthOffset, verticalPassTexelHeightOffset, horizontalPassTexelWidthOffset, horizontalPassTexelHeightOffset;
     CGFloat _verticalTexelSpacing, _horizontalTexelSpacing;

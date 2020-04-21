@@ -2,6 +2,8 @@
 
 NSString *const kGPUImageTwoInputTextureVertexShaderString = SHADER_STRING
 (
+
+ //顶点Shader 代码
  attribute vec4 position;
  attribute vec4 inputTextureCoordinate;
  attribute vec4 inputTextureCoordinate2;
@@ -16,6 +18,7 @@ NSString *const kGPUImageTwoInputTextureVertexShaderString = SHADER_STRING
      textureCoordinate2 = inputTextureCoordinate2.xy;
  }
 );
+
 
 
 @implementation GPUImageTwoInputFilter
@@ -56,9 +59,13 @@ NSString *const kGPUImageTwoInputTextureVertexShaderString = SHADER_STRING
         
     runSynchronouslyOnVideoProcessingQueue(^{
         [GPUImageContext useImageProcessingContext];
+        //这里其实就是初始化第二个纹理坐标和第二个纹理
+        //第二个坐标的属性
         filterSecondTextureCoordinateAttribute = [filterProgram attributeIndex:@"inputTextureCoordinate2"];
-        
-        filterInputTextureUniform2 = [filterProgram uniformIndex:@"inputImageTexture2"]; // This does assume a name of "inputImageTexture2" for second input texture in the fragment shader
+
+        //输入Image的纹理索引图
+        filterInputTextureUniform2 = [filterProgram uniformIndex:@"inputImageTexture2"];
+        // This does assume a name of "inputImageTexture2" for second input texture in the fragment shader
         glEnableVertexAttribArray(filterSecondTextureCoordinateAttribute);
     });
     
@@ -67,7 +74,9 @@ NSString *const kGPUImageTwoInputTextureVertexShaderString = SHADER_STRING
 
 - (void)initializeAttributes;
 {
+    //先初始化父类的属性
     [super initializeAttributes];
+    //再初始化子类的属性，只有Attribute需要加，uniformIndex不需要加这个
     [filterProgram addAttribute:@"inputTextureCoordinate2"];
 }
 
@@ -94,15 +103,19 @@ NSString *const kGPUImageTwoInputTextureVertexShaderString = SHADER_STRING
     }
     
     [GPUImageContext setActiveShaderProgram:filterProgram];
-    outputFramebuffer = [[GPUImageContext sharedFramebufferCache] fetchFramebufferForSize:[self sizeOfFBO] textureOptions:self.outputTextureOptions onlyTexture:NO];
+    outputFramebuffer = [[GPUImageContext sharedFramebufferCache] fetchFramebufferForSize:
+            [self sizeOfFBO] textureOptions:self.outputTextureOptions onlyTexture:NO];
+
     [outputFramebuffer activateFramebuffer];
+
     if (usingNextFrameForImageCapture)
     {
         [outputFramebuffer lock];
     }
 
     [self setUniformsForProgramAtIndex:0];
-        
+
+    //其实就是把两个纹理绘制上去
     glClearColor(backgroundColorRed, backgroundColorGreen, backgroundColorBlue, backgroundColorAlpha);
     glClear(GL_COLOR_BUFFER_BIT);
     
