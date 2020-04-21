@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BC982B0114F046AC0001FF6F"
-               BuildableName = "FilterShowcase.app"
+               BuildableName = "&#x6ee4;&#x955c;&#x5217;&#x8868;.app"
                BlueprintName = "FilterShowcase"
                ReferencedContainer = "container:FilterShowcase.xcodeproj">
             </BuildableReference>
@@ -23,54 +23,55 @@
       </BuildActionEntries>
    </BuildAction>
    <TestAction
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES"
-      buildConfiguration = "Debug">
-      <Testables>
-      </Testables>
+      shouldUseLaunchSchemeArgsEnv = "YES">
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BC982B0114F046AC0001FF6F"
-            BuildableName = "FilterShowcase.app"
+            BuildableName = "&#x6ee4;&#x955c;&#x5217;&#x8868;.app"
             BlueprintName = "FilterShowcase"
             ReferencedContainer = "container:FilterShowcase.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
+      <Testables>
+      </Testables>
    </TestAction>
    <LaunchAction
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
-      buildConfiguration = "Debug"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BC982B0114F046AC0001FF6F"
-            BuildableName = "FilterShowcase.app"
+            BuildableName = "&#x6ee4;&#x955c;&#x5217;&#x8868;.app"
             BlueprintName = "FilterShowcase"
             ReferencedContainer = "container:FilterShowcase.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
+      buildConfiguration = "Release"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
-      buildConfiguration = "Release"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BC982B0114F046AC0001FF6F"
-            BuildableName = "FilterShowcase.app"
+            BuildableName = "&#x6ee4;&#x955c;&#x5217;&#x8868;.app"
             BlueprintName = "FilterShowcase"
             ReferencedContainer = "container:FilterShowcase.xcodeproj">
          </BuildableReference>

@@ -810,7 +810,7 @@
         }; break;
         case GPUIMAGE_PINCH:
         {
-            self.title = @"Pinch";
+            self.title = @"Pinch"; //挤压
             self.filterSettingsSlider.hidden = NO;
             
             [self.filterSettingsSlider setMinimumValue:-2.0];
@@ -821,35 +821,35 @@
         }; break;
         case GPUIMAGE_STRETCH:
         {
-            self.title = @"Stretch";
+            self.title = @"Stretch"; //素描
             self.filterSettingsSlider.hidden = YES;
             
             filter = [[GPUImageStretchDistortionFilter alloc] init];
         }; break;
         case GPUIMAGE_DILATION:
         {
-            self.title = @"Dilation";
+            self.title = @"Dilation"; //膨胀
             self.filterSettingsSlider.hidden = YES;
             
             filter = [[GPUImageRGBDilationFilter alloc] initWithRadius:4];
 		}; break;
         case GPUIMAGE_EROSION:
         {
-            self.title = @"Erosion";
+            self.title = @"Erosion";  // 腐蚀
             self.filterSettingsSlider.hidden = YES;
             
             filter = [[GPUImageRGBErosionFilter alloc] initWithRadius:4];
 		}; break;
         case GPUIMAGE_OPENING:
         {
-            self.title = @"Opening";
+            self.title = @"Opening";   //开发运算
             self.filterSettingsSlider.hidden = YES;
             
             filter = [[GPUImageRGBOpeningFilter alloc] initWithRadius:4];
 		}; break;
         case GPUIMAGE_CLOSING:
         {
-            self.title = @"Closing";
+            self.title = @"Closing"; //闭运算
             self.filterSettingsSlider.hidden = YES;
             
             filter = [[GPUImageRGBClosingFilter alloc] initWithRadius:4];
@@ -857,7 +857,7 @@
 
         case GPUIMAGE_PERLINNOISE:
         {
-            self.title = @"Perlin Noise";
+            self.title = @"Perlin Noise";  //柏林噪声点
             self.filterSettingsSlider.hidden = NO;
             
             [self.filterSettingsSlider setMinimumValue:1.0];
@@ -915,7 +915,7 @@
             [self.filterSettingsSlider setValue:0.4];
             
             filter = [[GPUImageChromaKeyBlendFilter alloc] init];
-            [(GPUImageChromaKeyBlendFilter *)filter setColorToReplaceRed:0.0 green:1.0 blue:0.0];
+            [(GPUImageChromaKeyBlendFilter *)filter setColorToReplaceRed:0.0 green:0.0 blue:0.0];
         }; break;
         case GPUIMAGE_CHROMAKEYNONBLEND:
         {
