@@ -232,7 +232,9 @@
     {
         [shaderString appendFormat:@"\
          blurCoordinates[%lu] = inputTextureCoordinate.xy + singleStepOffset * %f;\n\
-         blurCoordinates[%lu] = inputTextureCoordinate.xy - singleStepOffset * %f;\n", (unsigned long)((currentOptimizedOffset * 2) + 1), optimizedGaussianOffsets[currentOptimizedOffset], (unsigned long)((currentOptimizedOffset * 2) + 2), optimizedGaussianOffsets[currentOptimizedOffset]];
+         blurCoordinates[%lu] = inputTextureCoordinate.xy - singleStepOffset * %f;\n",
+         (unsigned long)((currentOptimizedOffset * 2) + 1), optimizedGaussianOffsets[currentOptimizedOffset],
+         (unsigned long)((currentOptimizedOffset * 2) + 2), optimizedGaussianOffsets[currentOptimizedOffset]];
     }
     
     // Footer
