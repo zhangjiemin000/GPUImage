@@ -52,6 +52,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag);
     BOOL overrideInputSize;
     
     BOOL allTargetsWantMonochromeData;
+    //这个表示输出的纹理会被用于获取图像，需要lock一下GPUFramebuffer
     BOOL usingNextFrameForImageCapture;
 }
 

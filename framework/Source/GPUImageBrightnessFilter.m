@@ -26,7 +26,7 @@ NSString *const kGPUImageBrightnessFragmentShaderString = SHADER_STRING
  void main()
  {
      vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);
-     
+     //brightness 表示将RGB统一都加上一定值
      gl_FragColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
  }
  );

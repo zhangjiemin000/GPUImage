@@ -53,6 +53,7 @@
     [(GPUImageTiltShiftFilter *)sepiaFilter setTopFocusLevel:midpoint - 0.1];
     [(GPUImageTiltShiftFilter *)sepiaFilter setBottomFocusLevel:midpoint + 0.1];
 
+    //开始触发处理图片
     [sourcePicture processImage];
 }
 
@@ -140,8 +141,10 @@
     GPUImageBrightnessFilter *passthroughFilter = [[GPUImageBrightnessFilter alloc] init];
     [passthroughFilter forceProcessingAtSize:CGSizeMake(640.0, 480.0)];
     [stillImageSource addTarget:passthroughFilter];
+    //这里通知获取图像，会加锁，就是保证一帧图像锁住，不会被再次写入buffer
     [passthroughFilter useNextFrameForImageCapture];
     [stillImageSource processImage];
+    //这里输出图像
     UIImage *nearestNeighborImage = [passthroughFilter imageFromCurrentFramebuffer];
 
     // Lanczos downsampling

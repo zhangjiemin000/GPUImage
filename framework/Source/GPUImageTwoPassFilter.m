@@ -121,6 +121,7 @@
 //    }
 
     // Run the second stage of the two-pass filter
+    //其实拿的就是同一个FrameBuffer，因为size是一样的
     secondOutputFramebuffer = [[GPUImageContext sharedFramebufferCache] fetchFramebufferForSize:[self sizeOfFBO] textureOptions:self.outputTextureOptions onlyTexture:NO];
     [secondOutputFramebuffer activateFramebuffer];
     [GPUImageContext setActiveShaderProgram:secondFilterProgram];
