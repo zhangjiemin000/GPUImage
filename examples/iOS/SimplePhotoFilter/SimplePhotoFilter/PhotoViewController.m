@@ -112,20 +112,12 @@
 
         // Save to assets library
         ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
-        
-        [library writeImageDataToSavedPhotosAlbum:processedJPEG metadata:stillCamera.currentCaptureMetadata completionBlock:^(NSURL *assetURL, NSError *error2)
-         {
-             if (error2) {
-                 NSLog(@"ERROR: the image failed to be written");
-             }
-             else {
-                 NSLog(@"PHOTO SAVED - assetURL: %@", assetURL);
-             }
-			 
-             runOnMainQueueWithoutDeadlocking(^{
-                 [photoCaptureButton setEnabled:YES];
-             });
-         }];
+        UIImage *capturedImage = [UIImage imageWithData:processedJPEG];
+        NSMutableDictionary *removeOrientation = [stillCamera.currentCaptureMetadata mutableCopy];
+        [removeOrientation removeObjectForKey:@"Orientation"];
+        [library writeImageToSavedPhotosAlbum:capturedImage.CGImage metadata:removeOrientation completionBlock:^(NSURL *assetURL, NSError *error) {
+
+        }];
     }];
 }
 
