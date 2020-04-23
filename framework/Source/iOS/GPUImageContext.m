@@ -110,6 +110,11 @@ static void *openGLESContextQueueKey;
     }
 }
 
+/**
+ * 获取当前设备可以容忍的最大的纹理Size
+ * 直接从GPU中获取
+ * @return
+ */
 + (GLint)maximumTextureSizeForThisDevice;
 {
     static dispatch_once_t pred;
@@ -202,21 +207,25 @@ static void *openGLESContextQueueKey;
     GLint maxTextureSize = [self maximumTextureSizeForThisDevice]; 
     if ( (inputSize.width < maxTextureSize) && (inputSize.height < maxTextureSize) )
     {
+        //如果当前的Size满足要求，则直接返回
         return inputSize;
     }
-    
+
+    //处理不满足的图片
     CGSize adjustedSize;
     if (inputSize.width > inputSize.height)
     {
+        //如果是宽度大于高度，那么肯定宽度是超过的,以宽度为准
         adjustedSize.width = (CGFloat)maxTextureSize;
         adjustedSize.height = ((CGFloat)maxTextureSize / inputSize.width) * inputSize.height;
     }
     else
     {
+        //与上述同理
         adjustedSize.height = (CGFloat)maxTextureSize;
         adjustedSize.width = ((CGFloat)maxTextureSize / inputSize.height) * inputSize.width;
     }
-
+    //返回调整后的大小
     return adjustedSize;
 }
 
