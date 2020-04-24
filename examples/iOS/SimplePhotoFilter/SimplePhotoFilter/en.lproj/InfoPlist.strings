@@ -1,2 +1,9 @@
 /* Localized versions of Info.plist keys */
 
+
+
+
+
+"NSCameraUsageDescription"="We need access to your camera permissions to take photos and edit it.";
+"NSPhotoLibraryAddUsageDescription"="This allows us to use the album to help you select photos or save your image report, so that you can easily view them at any time.";
+"NSPhotoLibraryUsageDescription"="This allows us to use the album to help you select photos or save your image report, so that you can easily view them at any time.";

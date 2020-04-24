@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		168D9DF62452A00600B6DAE9 /* Photos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 168D9DF32452A00600B6DAE9 /* Photos.framework */; };
+		6FD38421123FCB95C1DCB5B5 /* NewPhotoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FD38EABC94C70080ACD288C /* NewPhotoViewController.m */; };
 		BC6ED8E11545B9A900966798 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BC6ED8E01545B9A900966798 /* AssetsLibrary.framework */; };
 		BCB3C42D16BCA81D003D26B0 /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = BCB3C42816BCA81D003D26B0 /* Icon-72.png */; };
 		BCB3C42E16BCA81D003D26B0 /* Icon-72@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BCB3C42916BCA81D003D26B0 /* Icon-72@2x.png */; };
@@ -55,6 +57,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		168D9DF32452A00600B6DAE9 /* Photos.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Photos.framework; path = System/Library/Frameworks/Photos.framework; sourceTree = SDKROOT; };
+		6FD389A14FBDA81624CB71A1 /* NewPhotoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewPhotoViewController.h; sourceTree = "<group>"; };
+		6FD38EABC94C70080ACD288C /* NewPhotoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NewPhotoViewController.m; sourceTree = "<group>"; };
 		BC6ED8E01545B9A900966798 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
 		BCB3C42816BCA81D003D26B0 /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-72.png"; path = "../../SharedIcons/Icon-72.png"; sourceTree = "<group>"; };
 		BCB3C42916BCA81D003D26B0 /* Icon-72@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-72@2x.png"; path = "../../SharedIcons/Icon-72@2x.png"; sourceTree = "<group>"; };
@@ -97,6 +102,7 @@
 				BCC1E6CD1523E3C50006EFA5 /* QuartzCore.framework in Frameworks */,
 				BCC1E6A11523E3620006EFA5 /* UIKit.framework in Frameworks */,
 				BCC1E6A31523E3620006EFA5 /* Foundation.framework in Frameworks */,
+				168D9DF62452A00600B6DAE9 /* Photos.framework in Frameworks */,
 				BCC1E6A51523E3620006EFA5 /* CoreGraphics.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -125,6 +131,7 @@
 		BCC1E69F1523E3620006EFA5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				168D9DF32452A00600B6DAE9 /* Photos.framework */,
 				BCC1E6B71523E3880006EFA5 /* GPUImage.xcodeproj */,
 				BCC1E6C61523E3C50006EFA5 /* CoreMedia.framework */,
 				BCC1E6C71523E3C50006EFA5 /* CoreVideo.framework */,
@@ -147,6 +154,8 @@
 				BCC1E6CE1523E4780006EFA5 /* PhotoViewController.h */,
 				BCC1E6CF1523E4780006EFA5 /* PhotoViewController.m */,
 				BCC1E6A71523E3620006EFA5 /* Supporting Files */,
+				6FD38EABC94C70080ACD288C /* NewPhotoViewController.m */,
+				6FD389A14FBDA81624CB71A1 /* NewPhotoViewController.h */,
 			);
 			path = SimplePhotoFilter;
 			sourceTree = "<group>";
@@ -281,6 +290,7 @@
 				BCC1E6AD1523E3620006EFA5 /* main.m in Sources */,
 				BCC1E6B11523E3630006EFA5 /* PhotoAppDelegate.m in Sources */,
 				BCC1E6D01523E4780006EFA5 /* PhotoViewController.m in Sources */,
+				6FD38421123FCB95C1DCB5B5 /* NewPhotoViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -379,11 +389,13 @@
 				DEVELOPMENT_TEAM = NW3KV7KHV6;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SimplePhotoFilter/SimplePhotoFilter-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = GLES_SILENCE_DEPRECATION;
 				INFOPLIST_FILE = "SimplePhotoFilter/SimplePhotoFilter-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.as.face.test;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = DEV_FACETEST;
+				SECTORDER_FLAGS = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -395,11 +407,13 @@
 				DEVELOPMENT_TEAM = NW3KV7KHV6;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SimplePhotoFilter/SimplePhotoFilter-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = GLES_SILENCE_DEPRECATION;
 				INFOPLIST_FILE = "SimplePhotoFilter/SimplePhotoFilter-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.as.face.test;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = DEV_FACETEST;
+				SECTORDER_FLAGS = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

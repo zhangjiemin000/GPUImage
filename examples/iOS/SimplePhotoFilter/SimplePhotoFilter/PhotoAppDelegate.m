@@ -1,5 +1,6 @@
 #import "PhotoAppDelegate.h"
 #import "PhotoViewController.h"
+#import "NewPhotoViewController.h"
 
 @implementation PhotoAppDelegate
 
@@ -11,7 +12,8 @@
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
     
-    rootViewController = [[PhotoViewController alloc] initWithNibName:nil bundle:nil];
+//    rootViewController = [[PhotoViewController alloc] initWithNibName:nil bundle:nil];
+    rootViewController = [[NewPhotoViewController alloc] init];
     rootViewController.view.frame = [[UIScreen mainScreen] bounds];
     self.window.rootViewController = rootViewController;
     [self.window addSubview:rootViewController.view];

@@ -4,7 +4,7 @@
 
 @interface PhotoAppDelegate : UIResponder <UIApplicationDelegate>
 {
-    PhotoViewController *rootViewController;
+    UIViewController *rootViewController;
 }
 
 @property (strong, nonatomic) UIWindow *window;
