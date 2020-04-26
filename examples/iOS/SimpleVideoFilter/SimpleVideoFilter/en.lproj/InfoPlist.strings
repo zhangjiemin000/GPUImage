@@ -1,2 +1,15 @@
 /* Localized versions of Info.plist keys */
 
+NSAppleMusicUsageDescription = "AI Pocket Scanner would access your media rolls so you can set the to-do notification alert.";
+
+NSMediaLibraryUsageDescription = "AI Pocket Scanner would access your media rolls so you can set the to-do notification alert.";
+
+NSCameraUsageDescription = "AI Pocket Scanner would access the camera so you can recognize object, scan documents or set up reminders.";
+
+NSPhotoLibraryAdditionsUsageDescription = "AI Pocket Scanner would access your camera rolls so you can pick photos to create documents.";
+
+NSPhotoLibraryUsageDescription = "AI Pocket Scanner would access your camera rolls so you can pick photos to create documents.";
+
+NSLocationAlwaysAndWhenInUseUsageDescription = "To support the tourist attraction landmark function and call the map, we would like to get your location permission.";
+
+NSMicrophoneUsageDescription = "To support the tourist attraction landmark function and call the map, we would like to get your location permission.";
