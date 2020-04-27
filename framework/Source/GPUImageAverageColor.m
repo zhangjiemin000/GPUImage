@@ -7,7 +7,8 @@ NSString *const kGPUImageColorAveragingVertexShaderString = SHADER_STRING
  
  uniform float texelWidth;
  uniform float texelHeight;
- 
+
+ varying vec2 outputTextureCoordinate;
  varying vec2 upperLeftInputTextureCoordinate;
  varying vec2 upperRightInputTextureCoordinate;
  varying vec2 lowerLeftInputTextureCoordinate;
@@ -16,7 +17,7 @@ NSString *const kGPUImageColorAveragingVertexShaderString = SHADER_STRING
  void main()
  {
      gl_Position = position;
-
+     outputTextureCoordinate = inputTextureCoordinate.xy;
      upperLeftInputTextureCoordinate = inputTextureCoordinate.xy + vec2(-texelWidth, -texelHeight);
      upperRightInputTextureCoordinate = inputTextureCoordinate.xy + vec2(texelWidth, -texelHeight);
      lowerLeftInputTextureCoordinate = inputTextureCoordinate.xy + vec2(-texelWidth, texelHeight);
@@ -31,7 +32,7 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
  
  uniform sampler2D inputImageTexture;
  
- varying highp vec2 outputTextureCoordinate;
+ varying vec2 outputTextureCoordinate;
  
  varying highp vec2 upperLeftInputTextureCoordinate;
  varying highp vec2 upperRightInputTextureCoordinate;
@@ -44,7 +45,7 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
      highp vec4 upperRightColor = texture2D(inputImageTexture, upperRightInputTextureCoordinate);
      highp vec4 lowerLeftColor = texture2D(inputImageTexture, lowerLeftInputTextureCoordinate);
      highp vec4 lowerRightColor = texture2D(inputImageTexture, lowerRightInputTextureCoordinate);
-     
+
      gl_FragColor = 0.25 * (upperLeftColor + upperRightColor + lowerLeftColor + lowerRightColor);
  }
 );
@@ -127,10 +128,11 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
     
     NSUInteger numberOfReductionsInX = floor(log(inputTextureSize.width) / log(4.0));
     NSUInteger numberOfReductionsInY = floor(log(inputTextureSize.height) / log(4.0));
-    NSUInteger reductionsToHitSideLimit = MIN(numberOfReductionsInX, numberOfReductionsInY);
+   __unused NSUInteger reductionsToHitSideLimit = MIN(numberOfReductionsInX, numberOfReductionsInY);
 
     for (NSUInteger currentReduction = 0; currentReduction < reductionsToHitSideLimit; currentReduction++)
     {
+//        CGSize currentStageSize = firstInputFramebuffer.size;
         CGSize currentStageSize = CGSizeMake(floor(inputTextureSize.width / pow(4.0, currentReduction + 1.0)), floor(inputTextureSize.height / pow(4.0, currentReduction + 1.0)));
 
         [outputFramebuffer unlock];
@@ -169,18 +171,18 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
         // we need a normal color texture for averaging the color values
         NSAssert(self.outputTextureOptions.internalFormat == GL_RGBA, @"The output texture internal format for this filter must be GL_RGBA.");
         NSAssert(self.outputTextureOptions.type == GL_UNSIGNED_BYTE, @"The type of the output texture of this filter must be GL_UNSIGNED_BYTE.");
-        
+
         NSUInteger totalNumberOfPixels = round(finalStageSize.width * finalStageSize.height);
-        
+
         if (rawImagePixels == NULL)
         {
             rawImagePixels = (GLubyte *)malloc(totalNumberOfPixels * 4);
         }
-        
+
         [GPUImageContext useImageProcessingContext];
         [outputFramebuffer activateFramebuffer];
         glReadPixels(0, 0, (int)finalStageSize.width, (int)finalStageSize.height, GL_RGBA, GL_UNSIGNED_BYTE, rawImagePixels);
-        
+
         NSUInteger redTotal = 0, greenTotal = 0, blueTotal = 0, alphaTotal = 0;
         NSUInteger byteIndex = 0;
         for (NSUInteger currentPixel = 0; currentPixel < totalNumberOfPixels; currentPixel++)
@@ -190,12 +192,12 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
             blueTotal += rawImagePixels[byteIndex++];
             alphaTotal += rawImagePixels[byteIndex++];
         }
-        
+
         CGFloat normalizedRedTotal = (CGFloat)redTotal / (CGFloat)totalNumberOfPixels / 255.0;
         CGFloat normalizedGreenTotal = (CGFloat)greenTotal / (CGFloat)totalNumberOfPixels / 255.0;
         CGFloat normalizedBlueTotal = (CGFloat)blueTotal / (CGFloat)totalNumberOfPixels / 255.0;
         CGFloat normalizedAlphaTotal = (CGFloat)alphaTotal / (CGFloat)totalNumberOfPixels / 255.0;
-        
+
         if (_colorAverageProcessingFinishedBlock != NULL)
         {
             _colorAverageProcessingFinishedBlock(normalizedRedTotal, normalizedGreenTotal, normalizedBlueTotal, normalizedAlphaTotal, frameTime);

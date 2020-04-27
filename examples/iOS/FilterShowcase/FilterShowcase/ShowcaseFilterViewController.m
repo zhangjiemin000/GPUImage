@@ -1483,15 +1483,16 @@
         }
         else if (filterType == GPUIMAGE_AVERAGECOLOR)
         {
-            GPUImageSolidColorGenerator *colorGenerator = [[GPUImageSolidColorGenerator alloc] init];
-            [colorGenerator forceProcessingAtSize:[filterView sizeInPixels]];
+            [filter addTarget:filterView];
+//            GPUImageSolidColorGenerator *colorGenerator = [[GPUImageSolidColorGenerator alloc] init];
+//            [colorGenerator forceProcessingAtSize:[filterView sizeInPixels]];
+//
+//            [(GPUImageAverageColor *)filter setColorAverageProcessingFinishedBlock:^(CGFloat redComponent, CGFloat greenComponent, CGFloat blueComponent, CGFloat alphaComponent, CMTime frameTime) {
+//                [colorGenerator setColorRed:redComponent green:greenComponent blue:blueComponent alpha:alphaComponent];
+////                NSLog(@"Average color: %f, %f, %f, %f", redComponent, greenComponent, blueComponent, alphaComponent);
+//            }];
             
-            [(GPUImageAverageColor *)filter setColorAverageProcessingFinishedBlock:^(CGFloat redComponent, CGFloat greenComponent, CGFloat blueComponent, CGFloat alphaComponent, CMTime frameTime) {
-                [colorGenerator setColorRed:redComponent green:greenComponent blue:blueComponent alpha:alphaComponent];
-//                NSLog(@"Average color: %f, %f, %f, %f", redComponent, greenComponent, blueComponent, alphaComponent);
-            }];
-            
-            [colorGenerator addTarget:filterView];
+//            [colorGenerator addTarget:filterView];
         }
         else if (filterType == GPUIMAGE_LUMINOSITY)
         {
