@@ -16,7 +16,7 @@ NSString *const kGPUImageColorAveragingVertexShaderString = SHADER_STRING
  void main()
  {
      gl_Position = position;
-     
+
      upperLeftInputTextureCoordinate = inputTextureCoordinate.xy + vec2(-texelWidth, -texelHeight);
      upperRightInputTextureCoordinate = inputTextureCoordinate.xy + vec2(texelWidth, -texelHeight);
      lowerLeftInputTextureCoordinate = inputTextureCoordinate.xy + vec2(-texelWidth, texelHeight);
@@ -128,6 +128,7 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
     NSUInteger numberOfReductionsInX = floor(log(inputTextureSize.width) / log(4.0));
     NSUInteger numberOfReductionsInY = floor(log(inputTextureSize.height) / log(4.0));
     NSUInteger reductionsToHitSideLimit = MIN(numberOfReductionsInX, numberOfReductionsInY);
+
     for (NSUInteger currentReduction = 0; currentReduction < reductionsToHitSideLimit; currentReduction++)
     {
         CGSize currentStageSize = CGSizeMake(floor(inputTextureSize.width / pow(4.0, currentReduction + 1.0)), floor(inputTextureSize.height / pow(4.0, currentReduction + 1.0)));
@@ -139,15 +140,15 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        
+
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, currentTexture);
-        
+
         glUniform1i(filterInputTextureUniform, 2);
-        
+
         glUniform1f(texelWidthUniform, 0.25 / currentStageSize.width);
         glUniform1f(texelHeightUniform, 0.25 / currentStageSize.height);
-        
+
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         currentTexture = [outputFramebuffer texture];

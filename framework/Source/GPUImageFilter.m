@@ -618,6 +618,7 @@ NSString *const kGPUImagePassthroughFragmentShaderString = SHADER_STRING
 - (void)newFrameReadyAtTime:(CMTime)frameTime atIndex:(NSInteger)textureIndex;
 {
     //应用ImageFilter
+    //顶点坐标
     static const GLfloat imageVertices[] = {
         -1.0f, -1.0f,
         1.0f, -1.0f,

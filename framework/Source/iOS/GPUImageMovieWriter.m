@@ -98,6 +98,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     inputRotation = kGPUImageNoRotation;
     
     _movieWriterContext = [[GPUImageContext alloc] init];
+    //sharedContext GPUImage中维护了一个全局唯一的
     [_movieWriterContext useSharegroup:[[[GPUImageContext sharedImageProcessingContext] context] sharegroup]];
 
     runSynchronouslyOnContextQueue(_movieWriterContext, ^{
@@ -193,6 +194,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     // use default output settings if none specified
     if (outputSettings == nil) 
     {
+        //使用默认的Settings
         NSMutableDictionary *settings = [[NSMutableDictionary alloc] init];
         [settings setObject:AVVideoCodecH264 forKey:AVVideoCodecKey];
         [settings setObject:[NSNumber numberWithInt:videoSize.width] forKey:AVVideoWidthKey];
@@ -202,12 +204,14 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     // custom output settings specified
     else 
     {
+        //否则取出来对应的配置
 		__unused NSString *videoCodec = [outputSettings objectForKey:AVVideoCodecKey];
 		__unused NSNumber *width = [outputSettings objectForKey:AVVideoWidthKey];
 		__unused NSNumber *height = [outputSettings objectForKey:AVVideoHeightKey];
 		
 		NSAssert(videoCodec && width && height, @"OutputSettings is missing required parameters.");
-        
+
+		//去掉EncodingLiveVideo这个关键词
         if( [outputSettings objectForKey:@"EncodingLiveVideo"] ) {
             NSMutableDictionary *tmp = [outputSettings mutableCopy];
             [tmp removeObjectForKey:@"EncodingLiveVideo"];
@@ -248,9 +252,10 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
                                                            nil];
 //    NSDictionary *sourcePixelBufferAttributesDictionary = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInt:kCVPixelFormatType_32ARGB], kCVPixelBufferPixelFormatTypeKey,
 //                                                           nil];
-        
+
+//定义输入的属性，包括颜色空间和宽高，这三个属性是必须的，描述了数据的存储格式
     assetWriterPixelBufferInput = [AVAssetWriterInputPixelBufferAdaptor assetWriterInputPixelBufferAdaptorWithAssetWriterInput:assetWriterVideoInput sourcePixelBufferAttributes:sourcePixelBufferAttributesDictionary];
-    
+    //定义输入
     [assetWriter addInput:assetWriterVideoInput];
 }
 
@@ -274,6 +279,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     runSynchronouslyOnContextQueue(_movieWriterContext, ^{
         if (audioInputReadyCallback == NULL)
         {
+            //开始记录
             [assetWriter startWriting];
         }
     });
@@ -283,8 +289,9 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
 
 - (void)startRecordingInOrientation:(CGAffineTransform)orientationTransform;
 {
+    //定义转换
 	assetWriterVideoInput.transform = orientationTransform;
-
+    //开始记录
 	[self startRecording];
 }
 
@@ -313,10 +320,12 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     });
 }
 
+//外部调用 Finish 记录视频
 - (void)finishRecording;
 {
     [self finishRecordingWithCompletionHandler:NULL];
 }
+
 
 - (void)finishRecordingWithCompletionHandler:(void (^)(void))handler;
 {
@@ -325,6 +334,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         
         if (assetWriter.status == AVAssetWriterStatusCompleted || assetWriter.status == AVAssetWriterStatusCancelled || assetWriter.status == AVAssetWriterStatusUnknown)
         {
+            //这种搞法是一直在以查询的方式来处理回调
             if (handler)
                 runAsynchronouslyOnContextQueue(_movieWriterContext, handler);
             return;
@@ -411,7 +421,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
             }
             
             CMTime offset = CMTimeSubtract(current, previousAudioTime);
-            
+            //就是计算当前的时间戳
             if (offsetTime.value == 0) {
                 offsetTime = offset;
             } else {
@@ -573,6 +583,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         // Code originally sourced from http://allmybrain.com/2011/12/08/rendering-to-a-texture-with-ios-5-texture-cache-api/
         
 
+        //这是创建了渲染的纹理
         CVPixelBufferPoolCreatePixelBuffer (NULL, [assetWriterPixelBufferInput pixelBufferPool], &renderTarget);
 
         /* AVAssetWriter will use BT.601 conversion matrix for RGB to YCbCr conversion
@@ -583,7 +594,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         CVBufferSetAttachment(renderTarget, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_709_2, kCVAttachmentMode_ShouldPropagate);
         CVBufferSetAttachment(renderTarget, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_601_4, kCVAttachmentMode_ShouldPropagate);
         CVBufferSetAttachment(renderTarget, kCVImageBufferTransferFunctionKey, kCVImageBufferTransferFunction_ITU_R_709_2, kCVAttachmentMode_ShouldPropagate);
-        
+        //这个操作实际上就是将renderTarget和remderTexture绑定起来了，renderTarget 是CVPixelBufferRef，renderTexture是CVOpenGLESTextureRef
         CVOpenGLESTextureCacheCreateTextureFromImage (kCFAllocatorDefault, [_movieWriterContext coreVideoTextureCache], renderTarget,
                                                       NULL, // texture attributes
                                                       GL_TEXTURE_2D,
@@ -695,6 +706,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
 #pragma mark -
 #pragma mark GPUImageInput protocol
 
+//新的帧到达
 - (void)newFrameReadyAtTime:(CMTime)frameTime atIndex:(NSInteger)textureIndex;
 {
     if (!isRecording || _paused)
@@ -734,6 +746,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         return;
     }
 
+    //如果是刚开始记录
     if (CMTIME_IS_INVALID(startTime))
     {
         runSynchronouslyOnContextQueue(_movieWriterContext, ^{
@@ -741,7 +754,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
             {
                 [assetWriter startWriting];
             }
-            
+            //开始记录
             [assetWriter startSessionAtSourceTime:frameTime];
             startTime = frameTime;
         });
@@ -760,25 +773,30 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         
         // Render the frame with swizzled colors, so that they can be uploaded quickly as BGRA frames
         [_movieWriterContext useAsCurrentContext];
+        //使用程序替换颜色格式
         [self renderAtInternalSizeUsingFramebuffer:inputFramebufferForBlock];
         
         CVPixelBufferRef pixel_buffer = NULL;
         
         if ([GPUImageContext supportsFastTextureUpload])
         {
+            //renderTarget已经和renderTexture绑定起来了，在上面renderAtInternalSizeUsingFramebuffer中，已经对rederTarget进行了更新
             pixel_buffer = renderTarget;
             CVPixelBufferLockBaseAddress(pixel_buffer, 0);
         }
         else
         {
+            //使用pixelbufferpool来创建纹理
             CVReturn status = CVPixelBufferPoolCreatePixelBuffer (NULL, [assetWriterPixelBufferInput pixelBufferPool], &pixel_buffer);
             if ((pixel_buffer == NULL) || (status != kCVReturnSuccess))
             {
+                //如果成功，则直接释放pixelBuffer
                 CVPixelBufferRelease(pixel_buffer);
                 return;
             }
             else
             {
+                //不成功的话，从pixelBuffer中读取数据到纹理中
                 CVPixelBufferLockBaseAddress(pixel_buffer, 0);
                 
                 GLubyte *pixelBufferData = (GLubyte *)CVPixelBufferGetBaseAddress(pixel_buffer);
@@ -788,6 +806,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         
         void(^write)() = ^() {
             while( ! assetWriterVideoInput.readyForMoreMediaData && ! _encodingLiveVideo && ! videoEncodingIsFinished ) {
+                //延时处理
                 NSDate *maxDate = [NSDate dateWithTimeIntervalSinceNow:0.1];
                 //            NSLog(@"video waiting...");
                 [[NSRunLoop currentRunLoop] runUntilDate:maxDate];
@@ -798,6 +817,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
             }
             else if(self.assetWriter.status == AVAssetWriterStatusWriting)
             {
+                //写入pixel_buffer，这里构造了 input->writerInput->output的流水线
                 if (![assetWriterPixelBufferInput appendPixelBuffer:pixel_buffer withPresentationTime:frameTime])
                     NSLog(@"Problem appending pixel buffer at time: %@", CFBridgingRelease(CMTimeCopyDescription(kCFAllocatorDefault, frameTime)));
             }
@@ -806,6 +826,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
                 NSLog(@"Couldn't write a frame");
                 //NSLog(@"Wrote a video frame: %@", CFBridgingRelease(CMTimeCopyDescription(kCFAllocatorDefault, frameTime)));
             }
+            //释放BaseAddress
             CVPixelBufferUnlockBaseAddress(pixel_buffer, 0);
             
             previousFrameTime = frameTime;
@@ -842,6 +863,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
 
 - (void)setInputSize:(CGSize)newSize atIndex:(NSInteger)textureIndex;
 {
+
 }
 
 - (CGSize)maximumOutputSize;
@@ -988,13 +1010,18 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
 - (void)setPaused:(BOOL)newValue {
     if (_paused != newValue) {
         _paused = newValue;
-        
         if (_paused) {
             discont = YES;
         }
     }
 }
 
+/**
+ * 调整时间
+ * @param sample
+ * @param offset
+ * @return
+ */
 - (CMSampleBufferRef)adjustTime:(CMSampleBufferRef) sample by:(CMTime) offset {
     CMItemCount count;
     CMSampleBufferGetSampleTimingInfoArray(sample, 0, nil, &count);
@@ -1007,6 +1034,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     }
     
     CMSampleBufferRef sout;
+    //创建新的音频
     CMSampleBufferCreateCopyWithNewTiming(nil, sample, count, pInfo, &sout);
     free(pInfo);
     

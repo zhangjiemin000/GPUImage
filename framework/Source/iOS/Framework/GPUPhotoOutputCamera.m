@@ -209,12 +209,10 @@ void GPUImagePhotoCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize
 
 
 - (void)capturePhotoProcessedUpToFilter:(GPUImageOutput <GPUImageInput> *)finalFilterInChain withImageOnGPUHandler:(void (^)(NSData * data))block {
-
     dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
     self.finalFilterChain = finalFilterInChain;
     self.caputureResultBlock = block;
     [self.avCapturePhotoOutput capturePhotoWithSettings:self.currentCaptureSettings delegate:self];
-
 }
 
 
