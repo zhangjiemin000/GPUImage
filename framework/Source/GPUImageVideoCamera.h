@@ -34,6 +34,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] );
 	AVCaptureVideoDataOutput *videoOutput;
 
     BOOL capturePaused;
+    //这里的internalRotation， 决定了画面的方向(真机上)，镜像就是画的坐标顺序不一样，反正都是按点由逆时针画的
     GPUImageRotationMode outputRotation, internalRotation;
     dispatch_semaphore_t frameRenderingSemaphore;
         

@@ -118,11 +118,13 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 
     //C语言式调用
     [_captureSession beginConfiguration];
-    
+
 	// Add the video input	
 	NSError *error = nil;
 	//获取VideoInput
 	videoInput = [[AVCaptureDeviceInput alloc] initWithDevice:_inputCamera error:&error];
+
+
 	//加入这个VideoInput
 	if ([_captureSession canAddInput:videoInput]) 
 	{
@@ -246,7 +248,6 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 
     //配置结束
     [_captureSession commitConfiguration];
-    
 	return self;
 }
 
@@ -426,6 +427,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     
     if (newVideoInput != nil)
     {
+        //重新切换摄像头，需要重新选择设备
         [_captureSession beginConfiguration];
         //移除之前的相机
         [_captureSession removeInput:videoInput];
@@ -488,8 +490,13 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     return [GPUImageVideoCamera isFrontFacingCameraPresent];
 }
 
+/**
+ * 动态改变分辨率
+ * @param captureSessionPreset
+ */
 - (void)setCaptureSessionPreset:(NSString *)captureSessionPreset;
 {
+    //动态改变分辨率
 	[_captureSession beginConfiguration];
 	
 	_captureSessionPreset = captureSessionPreset;
@@ -586,10 +593,16 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 }
 
 #define INITIALFRAMESTOIGNOREFORBENCHMARK 5
-
+/**
+ * 通知其他滤镜可以开始处理了
+ * @param bufferWidth
+ * @param bufferHeight
+ * @param currentTime
+ */
 - (void)updateTargetsForVideoCameraUsingCacheTextureAtWidth:(int)bufferWidth height:(int)bufferHeight time:(CMTime)currentTime;
 {
     // First, update all the framebuffers in the targets
+    //这里是首先更新所有的FrameBuffer和大小，然后再统一调用NewFrameAtTime
     for (id<GPUImageInput> currentTarget in targets)
     {
         if ([currentTarget enabled])
@@ -602,9 +615,12 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             if (currentTarget != self.targetToIgnoreForUpdates)//如果不需要忽略更新
             {
                 //更新旋转和大小
+                //outputRotation 不是给Camera用的，是给其他滤镜用的
                 [currentTarget setInputRotation:outputRotation atIndex:textureIndexOfTarget];
+                //画面的大小
                 [currentTarget setInputSize:CGSizeMake(bufferWidth, bufferHeight) atIndex:textureIndexOfTarget];
-                
+
+                //这里就是传递framebuffer了
                 if ([currentTarget wantsMonochromeInput] && captureAsYUV)
                 {
                     [currentTarget setCurrentlyReceivingMonochromeInput:YES];
@@ -627,6 +643,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     }
     
     // Then release our hold on the local framebuffer to send it back to the cache as soon as it's no longer needed
+    //VideoCamera暂时不用这个FrameBuffer了，可以unlock掉
     [outputFramebuffer unlock];
     //本实例，清空Framebuffer，但是并不影响实际的Framebuffer
     outputFramebuffer = nil;
@@ -639,7 +656,8 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             //拿到对应target的纹理ID
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
             NSInteger textureIndexOfTarget = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
-            
+
+            //如果每帧都需要更新
             if (currentTarget != self.targetToIgnoreForUpdates)
             {
                 //应该是通知所有附着在本实例上面的处理模块，新的图像到了，可以开始渲染了，所以target列表的顺序就是滤镜的顺序
@@ -651,7 +669,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 
 /**
  * 处理Video的图像帧
- * 来了一帧
+ * 来了一帧，主要是转换YUV->RGB这个操作
  * @param sampleBuffer
  */
 - (void)processVideoSampleBuffer:(CMSampleBufferRef)sampleBuffer;
@@ -835,8 +853,8 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             {
                 CFAbsoluteTime currentFrameTime = (CFAbsoluteTimeGetCurrent() - startTime);
                 totalFrameTimeDuringCapture += currentFrameTime;
-                NSLog(@"Average frame time : %f ms", [self averageFrameDurationDuringCapture]);
-                NSLog(@"Current frame time : %f ms", 1000.0 * currentFrameTime);
+//                NSLog(@"Average frame time : %f ms", [self averageFrameDurationDuringCapture]);
+//                NSLog(@"Current frame time : %f ms", 1000.0 * currentFrameTime);
             }
         }
     }
@@ -1110,6 +1128,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             }
             else
             {
+                //这里可以镜像画面
                 if (_horizontallyMirrorFrontFacingCamera)
                 {
                     switch(_outputImageOrientation)

@@ -181,10 +181,12 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
 
         [GPUImageContext useImageProcessingContext];
         [outputFramebuffer activateFramebuffer];
+        //从frameBuffer中读取原始颜色值,因为改变了4次，所以这个运算速度很快
         glReadPixels(0, 0, (int)finalStageSize.width, (int)finalStageSize.height, GL_RGBA, GL_UNSIGNED_BYTE, rawImagePixels);
 
         NSUInteger redTotal = 0, greenTotal = 0, blueTotal = 0, alphaTotal = 0;
         NSUInteger byteIndex = 0;
+        //遍历所有的像素
         for (NSUInteger currentPixel = 0; currentPixel < totalNumberOfPixels; currentPixel++)
         {
             redTotal += rawImagePixels[byteIndex++];
@@ -193,11 +195,12 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
             alphaTotal += rawImagePixels[byteIndex++];
         }
 
+        //计算出所有的平均像素值
         CGFloat normalizedRedTotal = (CGFloat)redTotal / (CGFloat)totalNumberOfPixels / 255.0;
         CGFloat normalizedGreenTotal = (CGFloat)greenTotal / (CGFloat)totalNumberOfPixels / 255.0;
         CGFloat normalizedBlueTotal = (CGFloat)blueTotal / (CGFloat)totalNumberOfPixels / 255.0;
         CGFloat normalizedAlphaTotal = (CGFloat)alphaTotal / (CGFloat)totalNumberOfPixels / 255.0;
-
+        NSLog(@"平均颜色值%f,%f,%f",normalizedRedTotal,normalizedGreenTotal,normalizedBlueTotal);
         if (_colorAverageProcessingFinishedBlock != NULL)
         {
             _colorAverageProcessingFinishedBlock(normalizedRedTotal, normalizedGreenTotal, normalizedBlueTotal, normalizedAlphaTotal, frameTime);

@@ -45,9 +45,11 @@
 -(void)setupCamera {
     self.gpuPhotoOutputCamera = [[GPUPhotoOutputCamera alloc] initWithSessionPreset:AVCaptureSessionPresetPhoto cameraPosition:AVCaptureDevicePositionBack];
     self.gpuPhotoOutputCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
-    self.filter = [[GPUImageSketchFilter alloc] init];
-    [self.gpuPhotoOutputCamera addTarget:self.filter];
-    [self.filter addTarget:self.gpuImageView];
+    [self.gpuPhotoOutputCamera addTarget:self.gpuImageView];
+//    self.filter = [[GPUImageSketchFilter alloc] init];
+//    [self.gpuPhotoOutputCamera addTarget:self.filter];
+//    [self.filter addTarget:self.gpuImageView];
+    self.gpuPhotoOutputCamera.horizontallyMirrorRearFacingCamera = YES;
     [self.gpuPhotoOutputCamera startCameraCapture];
 }
 

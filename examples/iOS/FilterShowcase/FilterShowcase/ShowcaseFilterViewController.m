@@ -54,7 +54,17 @@
     [super viewDidAppear:animated];
     
     // Note: I needed to start camera capture after the view went on the screen, when a partially transition of navigation view controller stopped capturing via viewWilDisappear.
+    videoCamera.horizontallyMirrorRearFacingCamera = YES;
     [videoCamera startCameraCapture];
+
+    AVCaptureDeviceInput *inputDevice = ((AVCaptureDeviceInput *)videoCamera.captureSession.inputs.firstObject);
+    if([inputDevice.device lockForConfiguration:nil]) {
+        if(inputDevice.device.hasTorch) {
+            inputDevice.device.torchMode = AVCaptureTorchModeOn;
+        }
+        [inputDevice.device unlockForConfiguration];
+    }
+
 }
 
 - (void)viewDidUnload
@@ -75,6 +85,8 @@
 //    videoCamera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPreset1920x1080 cameraPosition:AVCaptureDevicePositionBack];
 //    videoCamera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPreset640x480 cameraPosition:AVCaptureDevicePositionFront];
     videoCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
+
+
     facesSwitch.hidden = YES;
     facesLabel.hidden = YES;
     BOOL needsSecondImage = NO;
@@ -1483,16 +1495,16 @@
         }
         else if (filterType == GPUIMAGE_AVERAGECOLOR)
         {
-            [filter addTarget:filterView];
-//            GPUImageSolidColorGenerator *colorGenerator = [[GPUImageSolidColorGenerator alloc] init];
-//            [colorGenerator forceProcessingAtSize:[filterView sizeInPixels]];
-//
-//            [(GPUImageAverageColor *)filter setColorAverageProcessingFinishedBlock:^(CGFloat redComponent, CGFloat greenComponent, CGFloat blueComponent, CGFloat alphaComponent, CMTime frameTime) {
-//                [colorGenerator setColorRed:redComponent green:greenComponent blue:blueComponent alpha:alphaComponent];
-////                NSLog(@"Average color: %f, %f, %f, %f", redComponent, greenComponent, blueComponent, alphaComponent);
-//            }];
+//            [filter addTarget:filterView];
+            GPUImageSolidColorGenerator *colorGenerator = [[GPUImageSolidColorGenerator alloc] init];
+            [colorGenerator forceProcessingAtSize:[filterView sizeInPixels]];
+
+            [(GPUImageAverageColor *)filter setColorAverageProcessingFinishedBlock:^(CGFloat redComponent, CGFloat greenComponent, CGFloat blueComponent, CGFloat alphaComponent, CMTime frameTime) {
+                [colorGenerator setColorRed:redComponent green:greenComponent blue:blueComponent alpha:alphaComponent];
+//                NSLog(@"Average color: %f, %f, %f, %f", redComponent, greenComponent, blueComponent, alphaComponent);
+            }];
             
-//            [colorGenerator addTarget:filterView];
+            [colorGenerator addTarget:filterView];
         }
         else if (filterType == GPUIMAGE_LUMINOSITY)
         {
