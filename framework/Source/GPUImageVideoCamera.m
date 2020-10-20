@@ -1,3 +1,4 @@
+#import <OpenGL/OpenGL.h>
 #import "GPUImageVideoCamera.h"
 #import "GPUImageMovieWriter.h"
 #import "GPUImageFilter.h"
@@ -79,12 +80,12 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 		return nil;
     }
 
-	//创建处理队列
+	//创建处理队列，视频处理队列，并行队列
     cameraProcessingQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH,0);
 	//音频处理队列
 	audioProcessingQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW,0);
 
-	//Frame 渲染信号量
+	//Frame 渲染信号量，渲染信号量
     frameRenderingSemaphore = dispatch_semaphore_create(1);
 
 	_frameRate = 0; // This will not set frame rate unless this value gets set to 1 or above
@@ -104,6 +105,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 	{
 		if ([device position] == cameraPosition)
 		{
+		    //如果选择的device是前置摄像头，那么取默认的
 			_inputCamera = device;
 		}
 	}
@@ -144,6 +146,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
         NSArray *supportedPixelFormats = videoOutput.availableVideoCVPixelFormatTypes;
         for (NSNumber *currentPixelFormat in supportedPixelFormats)
         {
+            //如果支持YUV颜色空间，420方式采样，
             if ([currentPixelFormat intValue] == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)
             {
                 supportsFullYUVRange = YES;
@@ -152,17 +155,20 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
         
         if (supportsFullYUVRange)
         {
+            //如果支持YUV采样，那么output就使用这个格式
             [videoOutput setVideoSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_420YpCbCr8BiPlanarFullRange] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
             isFullYUVRange = YES;
         }
         else
         {
+            //否则的话，就使用videoRange，VideoRange应该是颜色范围不是很大
             [videoOutput setVideoSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
             isFullYUVRange = NO;
         }
     }
     else
     {
+        //如果不支持YUV格式，那么就使用32位BRGA格式
         [videoOutput setVideoSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_32BGRA] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
     }
 
@@ -171,7 +177,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
         
         if (captureAsYUV)
         {
-            //切换上下文
+            //切换上下文,必须重新确认一次上下文是当前的。
             [GPUImageContext useImageProcessingContext];
             //            if ([GPUImageContext deviceSupportsRedTextures])
             //            {
@@ -181,10 +187,12 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             //            {
             if (isFullYUVRange)
             {
+                //如果可以支持YUV的输出，那么要获取yuv的转换程序
                 yuvConversionProgram = [[GPUImageContext sharedImageProcessingContext] programForVertexShaderString:kGPUImageVertexShaderString fragmentShaderString:kGPUImageYUVFullRangeConversionForLAFragmentShaderString];
             }
             else
             {
+                //否则的话， 就是VideoRange类型的程序
                 yuvConversionProgram = [[GPUImageContext sharedImageProcessingContext] programForVertexShaderString:kGPUImageVertexShaderString fragmentShaderString:kGPUImageYUVVideoRangeConversionForLAFragmentShaderString];
             }
 

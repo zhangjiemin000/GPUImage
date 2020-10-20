@@ -1,11 +1,14 @@
 #import "GPUImageContext.h"
 #import <OpenGLES/EAGLDrawable.h>
 #import <AVFoundation/AVFoundation.h>
+#import <OpenGL/OpenGL.h>
 
 #define MAXSHADERPROGRAMSALLOWEDINCACHE 40
 
 extern dispatch_queue_attr_t GPUImageDefaultQueueAttribute(void);
-
+/**
+ * GPUImage封装的OpenGL 上下文类
+ */
 @interface GPUImageContext()
 {
     NSMutableDictionary *shaderProgramCache;
@@ -17,7 +20,7 @@ extern dispatch_queue_attr_t GPUImageDefaultQueueAttribute(void);
 
 @implementation GPUImageContext
 
-@synthesize context = _context;
+@synthesize context = _context;  //自动生成一个别名
 @synthesize currentShaderProgram = _currentShaderProgram;
 @synthesize contextQueue = _contextQueue;
 @synthesize coreVideoTextureCache = _coreVideoTextureCache;
@@ -33,12 +36,16 @@ static void *openGLESContextQueueKey;
     }
 
 	openGLESContextQueueKey = &openGLESContextQueueKey;
+    //创建了一个串行队列
     _contextQueue = dispatch_queue_create("com.sunsetlakesoftware.GPUImage.openGLESContextQueue", GPUImageDefaultQueueAttribute());
     
 #if OS_OBJECT_USE_OBJC
+    //指定QueueKey
 	dispatch_queue_set_specific(_contextQueue, openGLESContextQueueKey, (__bridge void *)self, NULL);
 #endif
+	//程序缓存
     shaderProgramCache = [[NSMutableDictionary alloc] init];
+    //使用历史
     shaderProgramUsageHistory = [[NSMutableArray alloc] init];
     
     return self;
@@ -268,6 +275,7 @@ static void *openGLESContextQueueKey;
 
 - (EAGLContext *)createContext;
 {
+    //注意这个sharegroup，这个sharegroup表示上下文对象，如果不为空，就表示使用的是sharegroup代表的上下文，也就是共享上下文的意思
     EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:_sharegroup];
     NSAssert(context != nil, @"Unable to create an OpenGL ES 2.0 context. The GPUImage framework requires OpenGL ES 2.0 support to work.");
     return context;
@@ -298,7 +306,9 @@ static void *openGLESContextQueueKey;
 {
     if (_context == nil)
     {
+        //创建一个EAGLContext
         _context = [self createContext];
+        //设置当前的EAGL上下文
         [EAGLContext setCurrentContext:_context];
         
         // Set up a few global settings for the image processing pipeline
