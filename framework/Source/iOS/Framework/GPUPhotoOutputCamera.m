@@ -44,7 +44,6 @@ void GPUImagePhotoCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize
     CGColorSpaceRelease(genericRGBColorspace);
     //释放dataProvider
     CGDataProviderRelease(dataProvider);
-
     //准备创建CMSampleBuffer
     CVPixelBufferRef pixel_buffer = NULL;
     //创建CVPixelBuffer
